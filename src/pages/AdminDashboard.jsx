@@ -1,11 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 const AdminDashboard = () => {
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalSellers: 0,
+    activeSpaces: 0,
+    revenue: 0
+  });
+  
+  const [loading, setLoading] = useState(true);
+
   const [approvals, setApprovals] = useState([
     { id: 1, type: 'New Space Listing', name: 'Miami Beach Front' },
     { id: 2, type: 'Seller Application', name: 'Global Spaces Inc.' }
   ]);
+
+  useEffect(() => {
+    // Fetch live stats from SQLite backend
+    fetch('http://localhost:5000/api/stats/admin')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setStats(data.data);
+        }
+      })
+      .catch(err => console.error("Error fetching stats:", err))
+      .finally(() => setLoading(false));
+  }, []);
 
   const handleAction = (id, action) => {
     alert(`${action} successful!`);
@@ -26,23 +48,29 @@ const AdminDashboard = () => {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
         
         <div className="glass-panel" style={{ padding: '2rem' }}>
-          <h3 style={{ marginBottom: '1rem', color: 'var(--color-primary-light)' }}>Platform Overview</h3>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-            <span style={{ color: 'var(--color-text-muted)' }}>Total Users</span>
-            <strong>1,245</strong>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-            <span style={{ color: 'var(--color-text-muted)' }}>Total Sellers</span>
-            <strong>84</strong>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-            <span style={{ color: 'var(--color-text-muted)' }}>Active Spaces</span>
-            <strong>112</strong>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-            <span style={{ color: 'var(--color-text-muted)' }}>Monthly Revenue</span>
-            <strong style={{ color: '#27c93f' }}>$89,450</strong>
-          </div>
+          <h3 style={{ marginBottom: '1rem', color: 'var(--color-primary-light)' }}>Platform Overview (Live)</h3>
+          {loading ? (
+            <p>Loading database stats...</p>
+          ) : (
+            <>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                <span style={{ color: 'var(--color-text-muted)' }}>Total Users</span>
+                <strong>{stats.totalUsers}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                <span style={{ color: 'var(--color-text-muted)' }}>Total Sellers</span>
+                <strong>{stats.totalSellers}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                <span style={{ color: 'var(--color-text-muted)' }}>Active Spaces</span>
+                <strong>{stats.activeSpaces}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                <span style={{ color: 'var(--color-text-muted)' }}>Monthly Revenue</span>
+                <strong style={{ color: '#27c93f' }}>${stats.revenue.toLocaleString()}</strong>
+              </div>
+            </>
+          )}
         </div>
 
         <div className="glass-panel" style={{ padding: '2rem' }}>

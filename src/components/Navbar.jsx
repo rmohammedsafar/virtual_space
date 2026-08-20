@@ -24,14 +24,14 @@ const Navbar = () => {
         </div>
         
         <nav className="nav-links">
-          <a href="#features" className="nav-link">Features</a>
-          <a href="#pricing" className="nav-link">Plans</a>
-          <a href="#registration" className="nav-link">Register</a>
+          <a href="/#features" className="nav-link">Features</a>
+          <a href="/#pricing" className="nav-link">Plans</a>
+          <Link to="/register" className="nav-link">Register</Link>
         </nav>
         
         <div className="nav-actions" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           <Link to="/login" className="nav-link" style={{ fontWeight: 600 }}>Login</Link>
-          <a href="#registration" className="btn-primary">Get Your Space</a>
+          <Link to="/register" className="btn-primary">Get Your Space</Link>
         </div>
       </div>
     </header>

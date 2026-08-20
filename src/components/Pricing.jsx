@@ -32,14 +32,19 @@ const Pricing = () => {
   return (
     <section className="pricing" id="pricing">
       <div className="container">
-        <div className="section-header text-center">
+        <div className="section-header text-center" data-aos="fade-up">
           <h2 className="section-title">Transparent <span className="text-gradient">Pricing</span></h2>
           <p className="section-subtitle">Choose the perfect virtual space plan that fits your business needs.</p>
         </div>
         
         <div className="pricing-grid">
           {plans.map((plan, index) => (
-            <div className={`pricing-card glass-panel ${plan.popular ? 'popular' : ''}`} key={index}>
+            <div 
+              className={`pricing-card glass-panel ${plan.popular ? 'popular' : ''}`} 
+              key={index}
+              data-aos={index === 1 ? "fade-up" : "fade-up"} 
+              data-aos-delay={`${index * 200}`}
+            >
               {plan.popular && <div className="popular-badge">Most Popular</div>}
               <h3 className="plan-name">{plan.name}</h3>
               <div className="plan-price-container">
