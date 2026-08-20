@@ -1,0 +1,205 @@
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding-top: 120px;
+  overflow: hidden;
+}
+
+.hero-content {
+  max-width: 900px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 10;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  background: rgba(0, 119, 255, 0.1);
+  border: 1px solid rgba(0, 119, 255, 0.2);
+  border-radius: 30px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-primary-light);
+  margin-bottom: 2rem;
+  letter-spacing: 1px;
+}
+
+.badge-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--color-primary-light);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--color-primary-light);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.5); opacity: 0.5; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.hero-title {
+  font-size: clamp(2.5rem, 5vw, 4.5rem);
+  line-height: 1.1;
+  font-weight: 800;
+  margin-bottom: 1.5rem;
+  letter-spacing: -1px;
+}
+
+.hero-subtitle {
+  font-size: 1.1rem;
+  color: var(--color-text-muted);
+  max-width: 600px;
+  margin: 0 auto 2.5rem;
+  line-height: 1.7;
+}
+
+.hero-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 4rem;
+}
+
+/* Dashboard Mockup */
+.hero-mockup {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  border-radius: 12px;
+  overflow: hidden;
+  transform: perspective(1000px) rotateX(5deg);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  transition: transform 0.5s ease;
+}
+
+.hero-mockup:hover {
+  transform: perspective(1000px) rotateX(0deg) translateY(-10px);
+}
+
+.mockup-header {
+  height: 40px;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  padding: 0 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.mockup-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.mockup-dots span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ff5f56;
+}
+.mockup-dots span:nth-child(2) { background: #ffbd2e; }
+.mockup-dots span:nth-child(3) { background: #27c93f; }
+
+.mockup-url {
+  flex: 1;
+  text-align: center;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.4);
+  font-family: monospace;
+}
+
+.mockup-body {
+  display: flex;
+  height: 400px;
+  background: rgba(10, 10, 20, 0.8);
+}
+
+.mockup-sidebar {
+  width: 200px;
+  background: rgba(0, 0, 0, 0.2);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.mockup-content {
+  flex: 1;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.mockup-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.mockup-card-title {
+  font-size: 0.9rem;
+  color: var(--color-primary-light);
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.mockup-address {
+  font-size: 1.2rem;
+  line-height: 1.5;
+  color: white;
+}
+
+.mockup-stats {
+  display: flex;
+  gap: 1rem;
+  height: 100px;
+}
+
+.mockup-stat-box {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Glow effects */
+.glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  z-index: 1;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.glow-1 {
+  width: 400px;
+  height: 400px;
+  background: var(--color-primary);
+  top: -100px;
+  right: -100px;
+}
+
+.glow-2 {
+  width: 300px;
+  height: 300px;
+  background: var(--color-accent);
+  bottom: -50px;
+  left: -50px;
+}
+
+@media (max-width: 768px) {
+  .hero-actions {
+    flex-direction: column;
+    padding: 0 1rem;
+  }
+  
+  .hero-mockup {
+    display: none;
+  }
+}
