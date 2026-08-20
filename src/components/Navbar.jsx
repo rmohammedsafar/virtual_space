@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import './Navbar.css';
 
 const Navbar = () => {
@@ -16,10 +17,10 @@ const Navbar = () => {
     <header className={`navbar ${scrolled ? 'scrolled' : ''}`}>
       <div className="container flex items-center justify-between">
         <div className="logo-container">
-          <a href="#" className="logo">
+          <Link to="/" className="logo">
             <span className="logo-icon">Q</span>
             <span className="logo-text">Quick <span className="text-gradient">Space</span></span>
-          </a>
+          </Link>
         </div>
         
         <nav className="nav-links">
@@ -28,7 +29,8 @@ const Navbar = () => {
           <a href="#registration" className="nav-link">Register</a>
         </nav>
         
-        <div className="nav-actions">
+        <div className="nav-actions" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <Link to="/login" className="nav-link" style={{ fontWeight: 600 }}>Login</Link>
           <a href="#registration" className="btn-primary">Get Your Space</a>
         </div>
       </div>
