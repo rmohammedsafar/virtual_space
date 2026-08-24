@@ -1,20 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import '../components/Features.css';
 
 const UserDashboard = () => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     rentals: [],
     activeRentalsCount: 0
   });
   const [loading, setLoading] = useState(true);
-
-  // In a real app, you would pass the logged-in user's ID here. 
-  // For the demo, we assume user ID 2.
-  const userId = 2;
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    fetch(`http://localhost:5000/api/stats/user/${userId}`)
+    // Auth Guard
+    const savedUser = localStorage.getItem('user');
+    if (!savedUser) {
+      navigate('/login');
+      return;
+    }
+    
+    const parsedUser = JSON.parse(savedUser);
+    if (parsedUser.role !== 'user') {
+      navigate('/login');
+      return;
+    }
+    
+    setUser(parsedUser);
+
+    // Fetch stats for logged-in user
+    fetch(`http://localhost:5000/api/stats/user/${parsedUser.id}`)
       .then(res => res.json())
       .then(data => {
         if (data.success) {
@@ -25,11 +39,18 @@ const UserDashboard = () => {
       .finally(() => setLoading(false));
   }, []);
 
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    navigate('/login');
+  };
+
+  if (!user) return null; // Prevent flash of content before redirect
+
   return (
     <div style={{ minHeight: '100vh', padding: '2rem' }}>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>
-        <h2><span className="text-gradient">Quick Space</span> User Dashboard</h2>
-        <Link to="/" className="btn-secondary">Logout</Link>
+        <h2><span className="text-gradient">Quick Space</span> Dashboard <span style={{fontSize: '1rem', color: '#888', fontWeight: 'normal'}}>({user.email})</span></h2>
+        <button onClick={handleLogout} className="btn-secondary">Logout</button>
       </header>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>

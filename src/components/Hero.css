@@ -67,6 +67,12 @@
   margin-bottom: 4rem;
 }
 
+@keyframes breathe {
+  0% { transform: perspective(1000px) rotateX(5deg) translateY(0); }
+  50% { transform: perspective(1000px) rotateX(5deg) translateY(-15px); }
+  100% { transform: perspective(1000px) rotateX(5deg) translateY(0); }
+}
+
 /* Dashboard Mockup */
 .hero-mockup {
   width: 100%;
@@ -74,9 +80,9 @@
   margin: 0 auto;
   border-radius: 12px;
   overflow: hidden;
-  transform: perspective(1000px) rotateX(5deg);
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
   transition: transform 0.5s ease;
+  animation: breathe 6s infinite ease-in-out;
 }
 
 .hero-mockup:hover {

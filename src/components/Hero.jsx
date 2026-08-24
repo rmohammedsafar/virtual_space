@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import './Hero.css';
 import { LiquidChrome } from './ReactBits/LiquidChrome';
 import BlurText from './ReactBits/BlurText';
+import ShinyText from './ReactBits/ShinyText';
+import CountUp from './ReactBits/CountUp';
 import { MapPin, Mail, Phone, Users, Shield, Zap } from 'lucide-react';
 
 const Hero = () => {
@@ -21,7 +23,8 @@ const Hero = () => {
       <div className="container" style={{ position: 'relative', zIndex: 10 }}>
         <div className="hero-content text-center">
           <div className="badge" data-aos="fade-down" data-aos-duration="1000">
-            <Zap size={14} style={{ marginRight: '6px', color: '#ffb347' }} /> FASTER • SMARTER • BEYOND
+            <Zap size={14} style={{ marginRight: '6px', color: '#ffb347' }} />
+            <ShinyText text="FASTER • SMARTER • BEYOND" speed={3} className="shiny-badge" />
           </div>
           
           <h1 className="hero-title">
@@ -81,15 +84,15 @@ const Hero = () => {
                 <div className="mockup-stats">
                   <div className="mockup-stat-box" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                     <Mail size={24} color="#a0aec0" style={{ marginBottom: '8px' }} />
-                    <span>2 New Mails</span>
+                    <span style={{ fontSize: '1.25rem', fontWeight: 700, color: '#fff' }}><CountUp from={0} to={2} separator="," direction="up" duration={1.5} /> New Mails</span>
                   </div>
                   <div className="mockup-stat-box" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                     <Phone size={24} color="#a0aec0" style={{ marginBottom: '8px' }} />
-                    <span>5 Missed Calls</span>
+                    <span style={{ fontSize: '1.25rem', fontWeight: 700, color: '#fff' }}><CountUp from={0} to={5} separator="," direction="up" duration={1.5} /> Missed Calls</span>
                   </div>
                   <div className="mockup-stat-box" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                     <Users size={24} color="#a0aec0" style={{ marginBottom: '8px' }} />
-                    <span>1 Meeting</span>
+                    <span style={{ fontSize: '1.25rem', fontWeight: 700, color: '#fff' }}><CountUp from={0} to={1} separator="," direction="up" duration={1.5} /> Meeting</span>
                   </div>
                 </div>
               </div>

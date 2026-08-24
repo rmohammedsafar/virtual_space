@@ -40,10 +40,10 @@ const Pricing = () => {
         <div className="pricing-grid">
           {plans.map((plan, index) => (
             <div 
-              className={`pricing-card glass-panel ${plan.popular ? 'popular' : ''}`} 
+              className={`pricing-card glass-panel ${plan.popular ? 'popular pulse-border' : ''}`} 
               key={index}
-              data-aos={index === 1 ? "fade-up" : "fade-up"} 
-              data-aos-delay={`${index * 200}`}
+              data-aos="fade-right" 
+              data-aos-delay={`${index * 150}`}
             >
               {plan.popular && <div className="popular-badge">Most Popular</div>}
               <h3 className="plan-name">{plan.name}</h3>
@@ -53,7 +53,7 @@ const Pricing = () => {
               </div>
               <ul className="plan-features">
                 {plan.features.map((feature, i) => (
-                  <li key={i}>
+                  <li key={i} data-aos="fade-in" data-aos-delay={`${index * 150 + (i * 100) + 300}`}>
                     <span className="check-icon">✓</span> {feature}
                   </li>
                 ))}

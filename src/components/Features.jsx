@@ -1,5 +1,6 @@
 import React from 'react';
 import './Features.css';
+import SpotlightCard from './ReactBits/SpotlightCard';
 
 const featuresData = [
   {
@@ -35,15 +36,15 @@ const Features = () => {
         
         <div className="features-grid">
           {featuresData.map((feature, index) => (
-            <div 
-              className="feature-card glass-panel" 
-              key={index} 
-              data-aos="fade-up" 
-              data-aos-delay={`${index * 150}`}
-            >
-              <div className="feature-icon">{feature.icon}</div>
-              <h3 className="feature-title">{feature.title}</h3>
-              <p className="feature-desc">{feature.description}</p>
+            <div data-aos="fade-up" data-aos-delay={`${index * 100}`} key={index}>
+              <SpotlightCard 
+                className="feature-card glass-panel" 
+                spotlightColor="rgba(0, 212, 255, 0.2)"
+              >
+                <div className="feature-icon" data-aos="zoom-in" data-aos-delay={`${index * 100 + 200}`}>{feature.icon}</div>
+                <h3 className="feature-title">{feature.title}</h3>
+                <p className="feature-desc">{feature.description}</p>
+              </SpotlightCard>
             </div>
           ))}
         </div>

@@ -26,6 +26,9 @@ const LoginPage = () => {
       const data = await response.json();
 
       if (data.success) {
+        // Save user session to localStorage
+        localStorage.setItem('user', JSON.stringify(data.user));
+
         // Route based on role
         if (role === 'user') navigate('/user');
         else if (role === 'seller') navigate('/seller');

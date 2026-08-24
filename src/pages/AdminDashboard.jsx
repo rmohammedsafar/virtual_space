@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const AdminDashboard = () => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalSellers: 0,
@@ -10,6 +11,7 @@ const AdminDashboard = () => {
   });
   
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
 
   const [approvals, setApprovals] = useState([
     { id: 1, type: 'New Space Listing', name: 'Miami Beach Front' },
@@ -17,6 +19,21 @@ const AdminDashboard = () => {
   ]);
 
   useEffect(() => {
+    // Auth Guard
+    const savedUser = localStorage.getItem('user');
+    if (!savedUser) {
+      navigate('/login');
+      return;
+    }
+    
+    const parsedUser = JSON.parse(savedUser);
+    if (parsedUser.role !== 'admin') {
+      navigate('/login');
+      return;
+    }
+    
+    setUser(parsedUser);
+
     // Fetch live stats from SQLite backend
     fetch('http://localhost:5000/api/stats/admin')
       .then(res => res.json())
@@ -38,11 +55,18 @@ const AdminDashboard = () => {
     alert(`Opening ${actionName}... (This will be connected to the database later)`);
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    navigate('/login');
+  };
+
+  if (!user) return null;
+
   return (
     <div style={{ minHeight: '100vh', padding: '2rem' }}>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>
-        <h2><span className="text-gradient">Quick Space</span> Admin Dashboard</h2>
-        <Link to="/" className="btn-secondary">Logout</Link>
+        <h2><span className="text-gradient">Quick Space</span> Admin Dashboard <span style={{fontSize: '1rem', color: '#888', fontWeight: 'normal'}}>({user.email})</span></h2>
+        <button onClick={handleLogout} className="btn-secondary">Logout</button>
       </header>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>

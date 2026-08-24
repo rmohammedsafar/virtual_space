@@ -4,7 +4,7 @@ const User = require('../models/User');
 const Space = require('../models/Space');
 const Rental = require('../models/Rental'); // Ensure Rental is imported
 
-// Simple Login Mockup Route
+// Simple Login Route
 router.post('/auth/login', async (req, res) => {
   try {
     const { email, password, role } = req.body;
@@ -12,16 +12,25 @@ router.post('/auth/login', async (req, res) => {
     // Check if user exists
     let user = await User.findOne({ where: { email } });
     
-    // For demo purposes, we auto-create the user if they don't exist
     if (!user) {
-      user = await User.create({
-        email,
-        password, // In production, ALWAYS hash passwords (e.g. bcrypt)
-        role
-      });
+      return res.status(401).json({ success: false, error: 'Invalid email or password' });
     }
 
-    res.json({ success: true, user, message: 'Logged in successfully' });
+    // Verify password (plain text for now, TODO: use bcrypt)
+    if (user.password !== password) {
+      return res.status(401).json({ success: false, error: 'Invalid email or password' });
+    }
+
+    // Optional: Verify role if strict role-based login is needed
+    if (user.role !== role) {
+      return res.status(401).json({ success: false, error: `Account exists, but is not a ${role}` });
+    }
+
+    res.json({ 
+      success: true, 
+      user: { id: user.id, email: user.email, role: user.role }, 
+      message: 'Logged in successfully' 
+    });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }

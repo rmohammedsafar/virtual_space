@@ -1,20 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const SellerDashboard = () => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     spaces: [],
     earnings: 0,
     activeSpacesCount: 0
   });
   const [loading, setLoading] = useState(true);
-
-  // In a real app, you would pass the logged-in user's ID here. 
-  // For the demo, we assume seller ID 1.
-  const sellerId = 1;
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    fetch(`http://localhost:5000/api/stats/seller/${sellerId}`)
+    // Auth Guard
+    const savedUser = localStorage.getItem('user');
+    if (!savedUser) {
+      navigate('/login');
+      return;
+    }
+    
+    const parsedUser = JSON.parse(savedUser);
+    if (parsedUser.role !== 'seller') {
+      navigate('/login');
+      return;
+    }
+    
+    setUser(parsedUser);
+
+    fetch(`http://localhost:5000/api/stats/seller/${parsedUser.id}`)
       .then(res => res.json())
       .then(data => {
         if (data.success) {
@@ -25,11 +38,18 @@ const SellerDashboard = () => {
       .finally(() => setLoading(false));
   }, []);
 
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    navigate('/login');
+  };
+
+  if (!user) return null;
+
   return (
     <div style={{ minHeight: '100vh', padding: '2rem' }}>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>
-        <h2><span className="text-gradient">Quick Space</span> Seller Dashboard</h2>
-        <Link to="/" className="btn-secondary">Logout</Link>
+        <h2><span className="text-gradient">Quick Space</span> Seller Dashboard <span style={{fontSize: '1rem', color: '#888', fontWeight: 'normal'}}>({user.email})</span></h2>
+        <button onClick={handleLogout} className="btn-secondary">Logout</button>
       </header>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
