@@ -1,6 +1,14 @@
 const { Sequelize } = require('sequelize');
 require('dotenv').config();
 
+// Determine SSL options based on environment
+const sslOptions = process.env.DB_SSL === 'true' ? {
+  ssl: {
+    require: true,
+    rejectUnauthorized: false
+  }
+} : {};
+
 // Connect to MySQL
 const sequelize = new Sequelize(
   process.env.DB_NAME || 'quickspace_db',
@@ -10,6 +18,7 @@ const sequelize = new Sequelize(
     host: process.env.DB_HOST || 'localhost',
     dialect: 'mysql',
     logging: false,
+    dialectOptions: sslOptions
   }
 );
 
