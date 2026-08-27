@@ -1,0 +1,42 @@
+name: Deploy to AWS EC2
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to AWS EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ~/virtual_space
+            # Pull latest code
+            git pull origin main
+            
+            # Update Backend
+            cd backend
+            npm install
+            pm2 restart backend || pm2 start server.js --name "backend"
+            
+            # Update Frontend
+            cd ..
+            npm install
+            npm run build
+            
+            # Restart frontend PM2 process if it exists, otherwise start it
+            pm2 restart frontend || sudo pm2 serve dist 80 --name "frontend" --spa
+            
+            # Save PM2 state so it restarts on server reboot
+            pm2 save
