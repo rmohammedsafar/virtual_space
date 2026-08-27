@@ -30,7 +30,7 @@ const SellerDashboard = () => {
     
     setUser(parsedUser);
 
-    fetch(`http://localhost:5000/api/stats/seller/${parsedUser.id}`)
+    fetch(`http://3.110.191.121:5000/api/stats/seller/${parsedUser.id}`)
       .then(res => res.json())
       .then(data => {
         if (data.success) {
@@ -49,7 +49,7 @@ const SellerDashboard = () => {
   const handleCreateSpace = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('http://localhost:5000/api/spaces', {
+      const res = await fetch('http://3.110.191.121:5000/api/spaces', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...newSpace, sellerId: user.id })

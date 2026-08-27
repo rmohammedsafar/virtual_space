@@ -38,7 +38,7 @@ const AdminDashboard = () => {
     setUser(parsedUser);
 
     // Fetch live stats from SQLite backend
-    fetch('http://localhost:5000/api/stats/admin')
+    fetch('http://3.110.191.121:5000/api/stats/admin')
       .then(res => res.json())
       .then(data => {
         if (data.success) {
@@ -59,7 +59,7 @@ const AdminDashboard = () => {
     if (actionName === 'Manage Users') {
       setModalLoading(true);
       try {
-        const res = await fetch('http://localhost:5000/api/admin/users');
+        const res = await fetch('http://3.110.191.121:5000/api/admin/users');
         const data = await res.json();
         if (data.success) {
           setUserList(data.users);
@@ -76,7 +76,7 @@ const AdminDashboard = () => {
     if (!window.confirm(`Are you sure you want to suspend ${email}?`)) return;
     
     try {
-      const res = await fetch(`http://localhost:5000/api/admin/users/${userId}`, {
+      const res = await fetch(`http://3.110.191.121:5000/api/admin/users/${userId}`, {
         method: 'DELETE'
       });
       const data = await res.json();

@@ -31,7 +31,7 @@ const UserDashboard = () => {
     setUser(parsedUser);
 
     // Fetch stats for logged-in user
-    fetch(`http://localhost:5000/api/stats/user/${parsedUser.id}`)
+    fetch(`http://3.110.191.121:5000/api/stats/user/${parsedUser.id}`)
       .then(res => res.json())
       .then(data => {
         if (data.success) {

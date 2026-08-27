@@ -77,7 +77,7 @@ const RegisterPage = () => {
       const formattedPhone = cleanPhone.startsWith('+') ? cleanPhone : '+91' + cleanPhone;
       const payload = { ...formData, phone: formattedPhone };
 
-      const response = await fetch('http://localhost:5000/api/auth/register', {
+      const response = await fetch('http://3.110.191.121:5000/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
