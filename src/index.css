@@ -7,9 +7,24 @@
   --color-text: #f0f4f8;
   --color-text-muted: #9ba4b5;
   --color-accent: #00f0ff;
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-modal-overlay: rgba(0, 0, 0, 0.85);
   
   --font-main: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --font-logo: 'Outfit', 'Inter', sans-serif;
+}
+
+:root[data-theme="light"] {
+  --color-bg-dark: #f0f4f8;
+  --color-bg-card: rgba(255, 255, 255, 0.8);
+  --color-primary: #0066cc;
+  --color-primary-light: #0099ff;
+  --color-secondary: #e2e8f0;
+  --color-text: #1a1a2e;
+  --color-text-muted: #4a5568;
+  --color-accent: #0088cc;
+  --color-border: rgba(0, 0, 0, 0.1);
+  --color-modal-overlay: rgba(255, 255, 255, 0.85);
 }
 
 * {
@@ -72,9 +87,9 @@ button {
   background: var(--color-bg-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--color-border);
   border-radius: 16px;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
 }
 
 /* Gradient Text */
@@ -125,7 +140,7 @@ button {
   border-radius: 30px;
   font-weight: 600;
   font-size: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--color-border);
   transition: all 0.3s ease;
 }
 
@@ -191,8 +206,8 @@ section {
 .form-input {
   width: 100%;
   padding: 12px 16px;
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   color: var(--color-text);
   font-family: inherit;

@@ -1,12 +1,24 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import '../components/Registration.css'; // Reuse form styles
+import { auth } from '../firebase';
+import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  
+  const [loginMethod, setLoginMethod] = useState('email'); // 'email' or 'phone'
+  
+  // Email state
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('user');
+  
+  // Phone state
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [confirmationResult, setConfirmationResult] = useState(null);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -16,28 +28,87 @@ const LoginPage = () => {
     setError('');
 
     try {
-      // Call our new Express Backend
       const response = await fetch('http://localhost:5000/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, role })
+        body: JSON.stringify({ email, password })
       });
       
       const data = await response.json();
 
       if (data.success) {
-        // Save user session to localStorage
         localStorage.setItem('user', JSON.stringify(data.user));
-
-        // Route based on role
-        if (role === 'user') navigate('/user');
-        else if (role === 'seller') navigate('/seller');
-        else if (role === 'admin') navigate('/admin');
+        if (data.user.role === 'user') navigate('/user');
+        else if (data.user.role === 'seller') navigate('/seller');
+        else if (data.user.role === 'admin') navigate('/admin');
       } else {
         setError(data.error || 'Failed to login. Is the database connected?');
       }
     } catch (err) {
       setError('Could not connect to backend server. Make sure it is running on port 5000.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const setupRecaptcha = () => {
+    if (!window.recaptchaVerifier) {
+      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        'size': 'invisible',
+        'callback': (response) => {
+          // reCAPTCHA solved
+        }
+      });
+    }
+  };
+
+  const handleSendOtp = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    try {
+      setupRecaptcha();
+      const appVerifier = window.recaptchaVerifier;
+      // Strip spaces and ensure E.164 format
+      let cleanPhone = phoneNumber.replace(/\s+/g, '');
+      const formattedPhone = cleanPhone.startsWith('+') ? cleanPhone : '+91' + cleanPhone;
+      const result = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
+      setConfirmationResult(result);
+      setOtpSent(true);
+    } catch (err) {
+      setError('Failed to send OTP. Check phone number format.');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    try {
+      await confirmationResult.confirm(otp);
+      
+      let cleanPhone = phoneNumber.replace(/\s+/g, '');
+      const formattedPhone = cleanPhone.startsWith('+') ? cleanPhone : '+91' + cleanPhone;
+      const response = await fetch('http://localhost:5000/api/auth/phone-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phoneNumber: formattedPhone })
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        localStorage.setItem('user', JSON.stringify(data.user));
+        if (data.user.role === 'user') navigate('/user');
+        else if (data.user.role === 'seller') navigate('/seller');
+        else if (data.user.role === 'admin') navigate('/admin');
+      } else {
+        setError(data.error || 'Backend failed to login via phone.');
+      }
+    } catch (err) {
+      setError('Invalid OTP. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -54,29 +125,73 @@ const LoginPage = () => {
           <p style={{ color: 'var(--color-text-muted)' }}>Login to access your space</p>
         </div>
         
+        <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
+          <button 
+            type="button" 
+            onClick={() => setLoginMethod('email')} 
+            className={loginMethod === 'email' ? 'btn-primary' : 'btn-secondary'} 
+            style={{ flex: 1, padding: '0.5rem', fontSize: '0.9rem' }}
+          >
+            Email
+          </button>
+          <button 
+            type="button" 
+            onClick={() => setLoginMethod('phone')} 
+            className={loginMethod === 'phone' ? 'btn-primary' : 'btn-secondary'} 
+            style={{ flex: 1, padding: '0.5rem', fontSize: '0.9rem' }}
+          >
+            Phone Number
+          </button>
+        </div>
+
         {error && <div style={{ background: 'rgba(255, 95, 86, 0.2)', border: '1px solid #ff5f56', padding: '10px', borderRadius: '8px', color: '#ff5f56', marginBottom: '1rem', fontSize: '0.9rem' }}>{error}</div>}
 
-        <form onSubmit={handleLogin} className="registration-form">
-          <div className="form-group">
-            <label className="form-label">Email</label>
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="form-input" placeholder="you@company.com" required />
+        {/* Email Login Form */}
+        {loginMethod === 'email' && (
+          <form onSubmit={handleLogin} className="registration-form">
+            <div className="form-group">
+              <label className="form-label">Email</label>
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="form-input" placeholder="you@company.com" required />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Password</label>
+              <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="form-input" placeholder="••••••••" required />
+            </div>
+
+            <button type="submit" className="btn-primary" disabled={loading} style={{ width: '100%', marginTop: '1rem', opacity: loading ? 0.7 : 1 }}>
+              {loading ? 'Connecting...' : 'Login'}
+            </button>
+          </form>
+        )}
+
+        {/* Phone Login Form */}
+        {loginMethod === 'phone' && (
+          <div>
+            <div id="recaptcha-container"></div>
+            
+            {!otpSent ? (
+              <form onSubmit={handleSendOtp} className="registration-form">
+                <div className="form-group">
+                  <label className="form-label">Phone Number</label>
+                  <input type="text" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)} className="form-input" placeholder="9876543210" required />
+                </div>
+                <button type="submit" className="btn-primary" disabled={loading} style={{ width: '100%', marginTop: '1rem', opacity: loading ? 0.7 : 1 }}>
+                  {loading ? 'Sending OTP...' : 'Send OTP'}
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleVerifyOtp} className="registration-form">
+                <div className="form-group">
+                  <label className="form-label">Enter 6-digit OTP</label>
+                  <input type="text" value={otp} onChange={e => setOtp(e.target.value)} className="form-input" placeholder="123456" required />
+                </div>
+                <button type="submit" className="btn-primary" disabled={loading} style={{ width: '100%', marginTop: '1rem', opacity: loading ? 0.7 : 1 }}>
+                  {loading ? 'Verifying...' : 'Verify OTP & Login'}
+                </button>
+              </form>
+            )}
           </div>
-          <div className="form-group">
-            <label className="form-label">Password</label>
-            <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="form-input" placeholder="••••••••" required />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Select Role</label>
-            <select className="form-input" value={role} onChange={(e) => setRole(e.target.value)}>
-              <option value="user">User (Renter)</option>
-              <option value="seller">Seller (Provider)</option>
-              <option value="admin">Admin</option>
-            </select>
-          </div>
-          <button type="submit" className="btn-primary" disabled={loading} style={{ width: '100%', marginTop: '1rem', opacity: loading ? 0.7 : 1 }}>
-            {loading ? 'Connecting to Database...' : 'Login'}
-          </button>
-        </form>
+        )}
         
         <div style={{ marginTop: '2rem', textAlign: 'center', fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
           Don't have an account? <Link to="/register" style={{ color: 'var(--color-primary)', textDecoration: 'none' }}>Register here</Link>

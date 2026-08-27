@@ -1,17 +1,22 @@
 const { Sequelize } = require('sequelize');
 require('dotenv').config();
 
-// Connect to SQLite
-const sequelize = new Sequelize({
-  dialect: 'sqlite',
-  storage: './database.sqlite', // This will create a database.sqlite file in the backend folder
-  logging: false, // Set to console.log to see SQL queries
-});
+// Connect to MySQL
+const sequelize = new Sequelize(
+  process.env.DB_NAME || 'quickspace_db',
+  process.env.DB_USER || 'root',
+  process.env.DB_PASSWORD || '',
+  {
+    host: process.env.DB_HOST || 'localhost',
+    dialect: 'mysql',
+    logging: false,
+  }
+);
 
 const connectDB = async () => {
   try {
     await sequelize.authenticate();
-    console.log('✅ SQLite Database connected successfully.');
+    console.log('✅ MySQL Database connected successfully.');
   } catch (error) {
     console.error('❌ Unable to connect to the database:', error.message);
   }

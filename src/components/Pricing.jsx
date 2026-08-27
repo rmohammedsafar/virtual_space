@@ -1,10 +1,12 @@
 import React from 'react';
+import ShinyText from './ReactBits/ShinyText';
+import StarBorder from './ReactBits/StarBorder';
 import './Pricing.css';
 
 const plans = [
   {
     name: "Starter",
-    price: "$29",
+    price: "₹29",
     period: "/month",
     features: ["Prime Business Address", "Mail Receipt", "Digital Mail Forwarding", "10% Meeting Room Discount"],
     buttonText: "Start Starter",
@@ -12,7 +14,7 @@ const plans = [
   },
   {
     name: "Professional",
-    price: "$79",
+    price: "₹79",
     period: "/month",
     features: ["Everything in Starter", "Local Phone Number", "Live Receptionist", "2 Free Meeting Room Hours/mo"],
     buttonText: "Get Professional",
@@ -20,7 +22,7 @@ const plans = [
   },
   {
     name: "Enterprise",
-    price: "$199",
+    price: "₹199",
     period: "/month",
     features: ["Everything in Pro", "Multiple Locations", "Dedicated Account Manager", "Unlimited Meeting Rooms"],
     buttonText: "Contact Sales",
@@ -58,11 +60,78 @@ const Pricing = () => {
                   </li>
                 ))}
               </ul>
-              <button className={plan.popular ? 'btn-primary full-width' : 'btn-secondary full-width'}>
-                {plan.buttonText}
-              </button>
+              {plan.popular ? (
+                <StarBorder as="button" color="#00d4ff" speed="4s" className="full-width" style={{ padding: 0, borderRadius: '30px' }}>
+                  <span className="btn-primary full-width" style={{ display: 'block', margin: 0 }}>{plan.buttonText}</span>
+                </StarBorder>
+              ) : (
+                <button className="btn-secondary full-width">
+                  {plan.buttonText}
+                </button>
+              )}
             </div>
           ))}
+        </div>
+        
+        <div className="pricing-matrix glass-panel" data-aos="fade-up" style={{ marginTop: '5rem', overflowX: 'auto' }}>
+          <h3 className="text-center" style={{ marginBottom: '2rem', fontSize: '1.8rem' }}>
+            <ShinyText text="Virtual Office Plans & Pricing Features" speed={3} className="inline-block" />
+          </h3>
+          <table className="matrix-table">
+            <thead>
+              <tr>
+                <th style={{ textAlign: 'left' }}>Virtual Office and Features</th>
+                <th>Business Plan<br/><span style={{fontSize:'0.8rem', fontWeight: 'normal'}}>Starter</span></th>
+                <th>APOB & PPOB Plan<br/><span style={{fontSize:'0.8rem', fontWeight: 'normal'}}>Professional</span></th>
+                <th>Mailing Address Plan<br/><span style={{fontSize:'0.8rem', fontWeight: 'normal'}}>Basic</span></th>
+                <th>Dedicated Desk Plan<br/><span style={{fontSize:'0.8rem', fontWeight: 'normal'}}>Enterprise</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Register the New Business Entity</td>
+                <td><span className="check-icon">✓</span></td>
+                <td><span className="check-icon">✓</span></td>
+                <td><span className="cross-icon">✗</span></td>
+                <td><span className="check-icon">✓</span></td>
+              </tr>
+              <tr>
+                <td>Update your Registered Address formally</td>
+                <td><span className="check-icon">✓</span></td>
+                <td><span className="check-icon">✓</span></td>
+                <td><span className="cross-icon">✗</span></td>
+                <td><span className="check-icon">✓</span></td>
+              </tr>
+              <tr>
+                <td>Use the Address for Opening a Bank Account</td>
+                <td><span className="check-icon">✓</span></td>
+                <td><span className="check-icon">✓</span></td>
+                <td><span className="cross-icon">✗</span></td>
+                <td><span className="check-icon">✓</span></td>
+              </tr>
+              <tr>
+                <td>Utilize Address for APOB & PPOB</td>
+                <td><span className="check-icon">✓</span></td>
+                <td><span className="check-icon">✓</span></td>
+                <td><span className="cross-icon">✗</span></td>
+                <td><span className="check-icon">✓</span></td>
+              </tr>
+              <tr>
+                <td>Courier Receiving and Forwarding Services</td>
+                <td><span className="check-icon">✓</span></td>
+                <td><span className="check-icon">✓</span></td>
+                <td><span className="check-icon">✓</span></td>
+                <td><span className="check-icon">✓</span></td>
+              </tr>
+              <tr>
+                <td>Meeting Room Access (T&C Apply)</td>
+                <td><span className="check-icon">✓</span></td>
+                <td><span className="check-icon">✓</span></td>
+                <td><span className="check-icon">✓</span></td>
+                <td><span className="check-icon">✓</span></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </section>

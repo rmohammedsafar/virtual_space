@@ -8,6 +8,10 @@ import RegisterPage from './pages/RegisterPage';
 import UserDashboard from './pages/UserDashboard';
 import SellerDashboard from './pages/SellerDashboard';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminLogin from './pages/AdminLogin';
+import RentalsPage from './pages/RentalsPage';
+import ThemeToggle from './components/ThemeToggle';
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   useEffect(() => {
@@ -20,13 +24,17 @@ function App() {
 
   return (
     <Router>
+      <Toaster position="bottom-center" />
+      <ThemeToggle />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/user" element={<UserDashboard />} />
+        <Route path="/rent" element={<RentalsPage />} />
         <Route path="/seller" element={<SellerDashboard />} />
         <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/login" element={<AdminLogin />} />
       </Routes>
     </Router>
   );

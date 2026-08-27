@@ -7,7 +7,7 @@ const Rental = require('../models/Rental'); // Ensure Rental is imported
 // Simple Login Route
 router.post('/auth/login', async (req, res) => {
   try {
-    const { email, password, role } = req.body;
+    const { email, password } = req.body;
     
     // Check if user exists
     let user = await User.findOne({ where: { email } });
@@ -21,10 +21,6 @@ router.post('/auth/login', async (req, res) => {
       return res.status(401).json({ success: false, error: 'Invalid email or password' });
     }
 
-    // Optional: Verify role if strict role-based login is needed
-    if (user.role !== role) {
-      return res.status(401).json({ success: false, error: `Account exists, but is not a ${role}` });
-    }
 
     res.json({ 
       success: true, 
@@ -36,24 +32,63 @@ router.post('/auth/login', async (req, res) => {
   }
 });
 
+// Phone Login Route
+router.post('/auth/phone-login', async (req, res) => {
+  try {
+    const { phoneNumber } = req.body;
+    
+    let user = await User.findOne({ where: { phone: phoneNumber } });
+    
+    if (!user) {
+      return res.status(401).json({ success: false, error: 'Phone number not registered. Please create an account.' });
+    }
+
+    res.json({ 
+      success: true, 
+      user: { id: user.id, email: user.email, role: user.role, phone: user.phone }, 
+      message: 'Logged in successfully via Phone' 
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Registration Route
 router.post('/auth/register', async (req, res) => {
   try {
-    const { email, password, role, companyName } = req.body;
+    const { email, password, role, companyName, phone } = req.body;
     
     // Check if user already exists
     let existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
       return res.status(400).json({ success: false, error: 'User with this email already exists' });
     }
+    
+    if (phone) {
+      let existingPhone = await User.findOne({ where: { phone } });
+      if (existingPhone) {
+        return res.status(400).json({ success: false, error: 'User with this phone number already exists' });
+      }
+    }
 
     // Create the new user
     const newUser = await User.create({
       email,
       password, // In production, hash passwords
-      role
+      role,
+      phone
       // Note: If you want to store companyName, you'd need to add it to the User model
     });
+
+    // Send a welcome email to the newly registered user
+    const { sendEmail } = require('../utils/emailService');
+    await sendEmail(
+      email,
+      'Welcome to Quick Space!',
+      `<h1>Welcome, ${email.split('@')[0]}!</h1>
+       <p>Your account has been successfully created.</p>
+       <p>You can now log in and explore our spaces.</p>`
+    );
 
     res.json({ success: true, user: newUser, message: 'Registered successfully' });
   } catch (error) {
@@ -66,6 +101,39 @@ router.get('/spaces', async (req, res) => {
   try {
     const spaces = await Space.findAll();
     res.json({ success: true, spaces });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Create a new space
+router.post('/spaces', async (req, res) => {
+  try {
+    const { name, address, monthlyPrice, sellerId, features } = req.body;
+    const space = await Space.create({
+      name,
+      address,
+      monthlyPrice,
+      sellerId,
+      features: features || [],
+      isVerified: false
+    });
+
+    // Fetch Seller to get email
+    const seller = await User.findByPk(sellerId);
+    if (seller) {
+      const { sendEmail } = require('../utils/emailService');
+      await sendEmail(
+        seller.email,
+        'Space Listed Successfully - Quick Space',
+        `<h1>Congratulations!</h1>
+         <p>Your space <strong>${space.name}</strong> has been listed successfully.</p>
+         <p>Monthly Price: ₹${space.monthlyPrice}</p>
+         <p>It will appear on the platform once approved.</p>`
+      );
+    }
+
+    res.json({ success: true, space });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
@@ -112,6 +180,66 @@ router.get('/stats/user/:id', async (req, res) => {
     });
     
     res.json({ success: true, data: { rentals, activeRentalsCount: rentals.length } });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Create a new rental
+router.post('/rentals', async (req, res) => {
+  try {
+    const { userId, spaceId, planType } = req.body;
+    
+    // Check if space exists
+    const space = await Space.findByPk(spaceId);
+    if (!space) {
+      return res.status(404).json({ success: false, error: 'Space not found' });
+    }
+
+    const nextBillingDate = new Date();
+    nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
+
+    const rental = await Rental.create({
+      userId,
+      spaceId,
+      planType,
+      status: 'active',
+      nextBillingDate
+    });
+
+    res.json({ success: true, rental, message: 'Space rented successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Get all users for admin
+router.get('/admin/users', async (req, res) => {
+  try {
+    const users = await User.findAll({
+      attributes: ['id', 'email', 'role', 'createdAt']
+    });
+    res.json({ success: true, users });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Delete a user (Suspend)
+router.delete('/admin/users/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userToDelete = await User.findByPk(id);
+    
+    if (!userToDelete) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+    if (userToDelete.role === 'admin') {
+      return res.status(403).json({ success: false, error: 'Cannot suspend an administrator' });
+    }
+
+    await User.destroy({ where: { id } });
+    res.json({ success: true, message: 'User suspended successfully' });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }

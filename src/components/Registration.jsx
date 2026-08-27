@@ -105,9 +105,9 @@ const Registration = () => {
                     value={formData.plan}
                     onChange={handleChange}
                   >
-                    <option value="Starter">Starter - $29/mo</option>
-                    <option value="Professional">Professional - $79/mo</option>
-                    <option value="Enterprise">Enterprise - $199/mo</option>
+                    <option value="Starter">Starter - ₹29/mo</option>
+                    <option value="Professional">Professional - ₹79/mo</option>
+                    <option value="Enterprise">Enterprise - ₹199/mo</option>
                   </select>
                 </div>
                 <button type="submit" className="btn-primary submit-btn">

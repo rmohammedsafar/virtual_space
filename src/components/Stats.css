@@ -1,0 +1,129 @@
+.stats-section {
+  padding: 6rem 0;
+  background-color: var(--color-bg-dark);
+}
+
+.stats-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4rem;
+  margin-bottom: 5rem;
+}
+
+.stats-text {
+  flex: 1;
+}
+
+.stats-text h2 {
+  font-size: 3rem;
+  line-height: 1.2;
+  margin-bottom: 1.5rem;
+  color: var(--color-text);
+}
+
+.stats-text p {
+  color: var(--color-text-muted);
+  line-height: 1.7;
+}
+
+.stats-venn {
+  flex: 1;
+  position: relative;
+  height: 400px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.venn-circle {
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #fff;
+  mix-blend-mode: screen;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  transition: transform 0.3s ease;
+}
+
+[data-theme="light"] .venn-circle {
+  mix-blend-mode: multiply;
+}
+
+.venn-circle:hover {
+  transform: scale(1.05);
+  z-index: 10;
+}
+
+.circle-1 {
+  background: rgba(0, 119, 255, 0.8);
+  top: 10px;
+  left: 60px;
+}
+
+.circle-2 {
+  background: rgba(0, 212, 255, 0.8);
+  top: 100px;
+  right: 60px;
+}
+
+.circle-3 {
+  background: rgba(100, 150, 255, 0.8);
+  bottom: 20px;
+  left: 110px;
+}
+
+.stats-numbers {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 2rem;
+}
+
+.stat-box {
+  padding: 2.5rem 1rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border);
+}
+
+.stat-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: #27c93f;
+}
+
+.stat-number {
+  font-size: 3rem;
+  font-weight: 800;
+  color: #27c93f;
+  margin-bottom: 0.5rem;
+  line-height: 1;
+}
+
+.stat-label {
+  font-weight: 600;
+  color: var(--color-text);
+  font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+  .stats-hero {
+    flex-direction: column;
+  }
+  .stats-venn {
+    width: 100%;
+    height: 350px;
+  }
+  .circle-1 { left: 10%; }
+  .circle-2 { right: 10%; }
+  .circle-3 { left: 25%; }
+}

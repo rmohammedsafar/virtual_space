@@ -97,6 +97,11 @@ select.form-input {
   background-position: right 10px top 50%;
 }
 
+select.form-input option {
+  background-color: #1a1a2e; /* Dark background */
+  color: #ffffff; /* White text */
+}
+
 .success-message {
   display: flex;
   flex-direction: column;
