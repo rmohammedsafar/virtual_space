@@ -218,6 +218,9 @@ const RentalsPage = () => {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
           {spaces.map(space => (
             <div key={space.id} className="glass-panel" style={{ padding: '2rem' }}>
+              {space.images && space.images.length > 0 && (
+                <img src={space.images[0]} alt={space.name} style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '8px', marginBottom: '1rem' }} />
+              )}
               <h3 style={{ marginBottom: '1rem', color: 'var(--color-primary-light)' }}>{space.name}</h3>
               <p style={{ marginBottom: '1rem', color: 'var(--color-text)' }}>{space.address}</p>
               <p style={{ marginBottom: '2rem', color: 'var(--color-text-muted)' }}>{space.description || 'A great virtual space.'}</p>

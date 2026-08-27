@@ -3,6 +3,19 @@ const router = express.Router();
 const User = require('../models/User');
 const Space = require('../models/Space');
 const Rental = require('../models/Rental'); // Ensure Rental is imported
+const multer = require('multer');
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+const { v4: uuidv4 } = require('uuid');
+
+// AWS S3 Configuration
+const s3 = new S3Client({
+  region: process.env.AWS_REGION || 'ap-south-1',
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+  }
+});
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
 // Simple Login Route
 router.post('/auth/login', async (req, res) => {
@@ -107,15 +120,33 @@ router.get('/spaces', async (req, res) => {
 });
 
 // Create a new space
-router.post('/spaces', async (req, res) => {
+router.post('/spaces', upload.array('images', 5), async (req, res) => {
   try {
     const { name, address, monthlyPrice, sellerId, features } = req.body;
+    
+    // Upload images to S3
+    const uploadedImages = [];
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        const fileKey = `spaces/${uuidv4()}-${file.originalname.replace(/\s+/g, '-')}`;
+        const uploadParams = {
+          Bucket: process.env.AWS_S3_BUCKET_NAME,
+          Key: fileKey,
+          Body: file.buffer,
+          ContentType: file.mimetype
+        };
+        await s3.send(new PutObjectCommand(uploadParams));
+        uploadedImages.push(`https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileKey}`);
+      }
+    }
+
     const space = await Space.create({
       name,
       address,
       monthlyPrice,
       sellerId,
       features: features || [],
+      images: uploadedImages,
       isVerified: false
     });
 

@@ -70,6 +70,9 @@ const UserDashboard = () => {
           ) : (
             stats.rentals.map(rental => (
               <div key={rental.id} style={{ marginBottom: '1.5rem', paddingBottom: '1.5rem', borderBottom: '1px solid var(--color-border)' }}>
+                {rental.Space?.images && rental.Space?.images.length > 0 && (
+                  <img src={rental.Space.images[0]} alt={rental.Space?.name} style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '8px', marginBottom: '1rem' }} />
+                )}
                 <div style={{ fontSize: '1.2rem', marginBottom: '1rem' }}>
                   <strong>{rental.Space?.name || 'Unknown Space'}</strong><br/>
                   {rental.Space?.address || 'Address pending'}

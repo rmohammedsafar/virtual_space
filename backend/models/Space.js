@@ -23,6 +23,10 @@ const Space = sequelize.define('Space', {
   status: {
     type: DataTypes.ENUM('available', 'full', 'inactive'),
     defaultValue: 'available',
+  },
+  images: {
+    type: DataTypes.JSON,
+    defaultValue: [],
   }
 }, {
   timestamps: true,

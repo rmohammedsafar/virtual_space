@@ -13,6 +13,7 @@ const SellerDashboard = () => {
   const [user, setUser] = useState(null);
   const [activeModal, setActiveModal] = useState(null);
   const [newSpace, setNewSpace] = useState({ name: '', address: '', monthlyPrice: 0 });
+  const [images, setImages] = useState([]);
 
   useEffect(() => {
     // Auth Guard
@@ -48,11 +49,25 @@ const SellerDashboard = () => {
 
   const handleCreateSpace = async (e) => {
     e.preventDefault();
+    if (images.length === 0 || images.length > 5) {
+      toast.error('Please upload between 1 and 5 images.');
+      return;
+    }
+
     try {
+      const formData = new FormData();
+      formData.append('name', newSpace.name);
+      formData.append('address', newSpace.address);
+      formData.append('monthlyPrice', newSpace.monthlyPrice);
+      formData.append('sellerId', user.id);
+      
+      Array.from(images).forEach(file => {
+        formData.append('images', file);
+      });
+
       const res = await fetch('http://3.110.191.121:5000/api/spaces', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...newSpace, sellerId: user.id })
+        body: formData
       });
       const data = await res.json();
       if (data.success) {
@@ -60,6 +75,7 @@ const SellerDashboard = () => {
         toast.success('Space Listed successfully!');
         setActiveModal(null);
         setNewSpace({ name: '', address: '', monthlyPrice: 0 });
+        setImages([]);
       } else {
         toast.error(data.error || 'Failed to list space');
       }
@@ -171,6 +187,10 @@ const SellerDashboard = () => {
                 <div style={{ marginBottom: '1rem' }}>
                   <label style={{ display: 'block', marginBottom: '5px', color: '#aaa' }}>Monthly Price (₹)</label>
                   <input type="number" required className="form-input" value={newSpace.monthlyPrice} onChange={e => setNewSpace({...newSpace, monthlyPrice: e.target.value})} />
+                </div>
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ display: 'block', marginBottom: '5px', color: '#aaa' }}>Images (Max 5)</label>
+                  <input type="file" multiple accept="image/*" onChange={e => setImages(e.target.files)} style={{ display: 'block', width: '100%', padding: '0.5rem', color: '#fff' }} />
                 </div>
                 <button type="submit" className="btn-primary" style={{ width: '100%', marginTop: '1rem' }}>Create Listing</button>
               </form>
