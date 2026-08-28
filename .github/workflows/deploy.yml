@@ -20,10 +20,12 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          script_stop: true
           script: |
             cd ~/virtual_space
-            # Pull latest code
-            git pull origin main
+            # Force pull latest code (overwrites accidental local changes on server)
+            git fetch origin
+            git reset --hard origin/main
             
             # Update Backend
             cd backend
