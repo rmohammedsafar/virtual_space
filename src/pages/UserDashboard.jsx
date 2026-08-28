@@ -118,6 +118,43 @@ const UserDashboard = () => {
           <button className="btn-primary" style={{ width: '100%' }} onClick={() => setIsPaymentModalOpen(true)}>Manage Payment Methods</button>
         </div>
 
+        <div className="glass-panel" style={{ padding: '2rem' }}>
+          <h3 style={{ marginBottom: '1rem', color: 'var(--color-primary-light)' }}>Feedback & Support</h3>
+          <p style={{ color: 'var(--color-text-muted)', marginBottom: '1rem', fontSize: '0.9rem' }}>Have suggestions or need help? Send us a message.</p>
+          <form onSubmit={async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const subject = form.subject.value;
+            const message = form.message.value;
+            try {
+              const res = await fetch('http://3.110.191.121:5000/api/feedback', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  userId: user.id,
+                  name: user.companyName || user.email,
+                  email: user.email,
+                  subject,
+                  message
+                })
+              });
+              const data = await res.json();
+              if(data.success) {
+                toast.success('Feedback sent to admin successfully!');
+                form.reset();
+              } else {
+                toast.error('Failed to send feedback.');
+              }
+            } catch(err) {
+              toast.error('Network error.');
+            }
+          }}>
+            <input type="text" name="subject" placeholder="Subject" className="form-input" style={{ marginBottom: '10px' }} required />
+            <textarea name="message" placeholder="Your feedback or issue..." className="form-input" style={{ marginBottom: '10px', minHeight: '80px', resize: 'vertical' }} required></textarea>
+            <button type="submit" className="btn-primary" style={{ width: '100%' }}>Send Feedback</button>
+          </form>
+        </div>
+
       </div>
 
       {/* Payment Methods Modal */}

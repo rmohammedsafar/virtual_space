@@ -19,6 +19,7 @@ const AdminDashboard = () => {
   const [editSpaceData, setEditSpaceData] = useState(null);
   const [editUserData, setEditUserData] = useState(null);
   const [siteContent, setSiteContent] = useState({});
+  const [feedbackList, setFeedbackList] = useState([]);
 
   const [approvals, setApprovals] = useState([
     { id: 1, type: 'New Space Listing', name: 'Miami Beach Front' },
@@ -96,6 +97,19 @@ const AdminDashboard = () => {
         }
       } catch (err) {
         console.error("Failed to fetch site content", err);
+      } finally {
+        setModalLoading(false);
+      }
+    } else if (actionName === 'User Feedback') {
+      setModalLoading(true);
+      try {
+        const res = await fetch('http://3.110.191.121:5000/api/feedback');
+        const data = await res.json();
+        if (data.success) {
+          setFeedbackList(data.feedbacks);
+        }
+      } catch (err) {
+        console.error("Failed to fetch feedback", err);
       } finally {
         setModalLoading(false);
       }
@@ -268,6 +282,7 @@ const AdminDashboard = () => {
           <button onClick={() => handleQuickAction('Manage Users')} className="btn-secondary" style={{ width: '100%', marginBottom: '1rem' }}>Manage Users</button>
           <button onClick={() => handleQuickAction('Manage Spaces')} className="btn-secondary" style={{ width: '100%', marginBottom: '1rem' }}>Manage Spaces</button>
           <button onClick={() => handleQuickAction('Manage Site Content')} className="btn-secondary" style={{ width: '100%', marginBottom: '1rem' }}>Manage Site Content</button>
+          <button onClick={() => handleQuickAction('User Feedback')} className="btn-secondary" style={{ width: '100%', marginBottom: '1rem' }}>User Feedback</button>
           <button onClick={() => handleQuickAction('Platform Settings')} className="btn-secondary" style={{ width: '100%', marginBottom: '1rem' }}>Platform Settings</button>
           <button onClick={() => handleQuickAction('Support Tickets')} className="btn-secondary" style={{ width: '100%' }}>View Support Tickets (4)</button>
         </div>
@@ -446,6 +461,49 @@ const AdminDashboard = () => {
                   <input type="number" defaultValue={5} style={{ width: '60px', background: 'var(--color-bg-card)', color: 'var(--color-text)', border: '1px solid #333', borderRadius: '4px', padding: '5px' }} />
                 </div>
                 <button className="btn-primary" style={{ marginTop: '1rem' }} onClick={() => { alert('Settings Saved!'); setActiveModal(null); }}>Save Settings</button>
+              </div>
+            )}
+
+            {activeModal === 'User Feedback' && (
+              <div>
+                <p style={{ color: '#aaa', marginBottom: '1.5rem' }}>View and manage feedback submitted by users.</p>
+                {modalLoading ? <p>Loading feedback...</p> : feedbackList.length === 0 ? (
+                  <p>No feedback received yet.</p>
+                ) : (
+                  <ul style={{ listStyle: 'none' }}>
+                    {feedbackList.map(feedback => (
+                      <li key={feedback.id} style={{ padding: '15px', background: 'var(--color-bg-card)', borderRadius: '8px', marginBottom: '10px', borderLeft: feedback.status === 'unread' ? '4px solid var(--color-primary)' : '4px solid transparent' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                          <strong style={{ fontSize: '1.1rem' }}>{feedback.subject}</strong>
+                          <span style={{ fontSize: '0.8rem', color: '#aaa' }}>{new Date(feedback.createdAt).toLocaleString()}</span>
+                        </div>
+                        <p style={{ margin: '0 0 10px 0', fontSize: '0.95rem' }}>{feedback.message}</p>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '10px' }}>
+                          <span style={{ fontSize: '0.85rem', color: '#aaa' }}>From: {feedback.name} ({feedback.email})</span>
+                          {feedback.status === 'unread' && (
+                            <button 
+                              className="btn-secondary" 
+                              style={{ padding: '5px 10px', fontSize: '0.8rem' }}
+                              onClick={async () => {
+                                try {
+                                  const res = await fetch(`http://3.110.191.121:5000/api/feedback/${feedback.id}/read`, { method: 'PUT' });
+                                  const data = await res.json();
+                                  if (data.success) {
+                                    setFeedbackList(feedbackList.map(f => f.id === feedback.id ? { ...f, status: 'read' } : f));
+                                  }
+                                } catch (err) {
+                                  console.error(err);
+                                }
+                              }}
+                            >
+                              Mark as Read
+                            </button>
+                          )}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             )}
 

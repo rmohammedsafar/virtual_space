@@ -7,6 +7,7 @@ const { connectDB, sequelize } = require('./config/database');
 const apiRoutes = require('./routes/api');
 const paymentsRoutes = require('./routes/payments');
 const chatRoutes = require('./routes/chat');
+const feedbackRoutes = require('./routes/feedback');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -19,6 +20,7 @@ app.use(express.json());
 app.use('/api', apiRoutes);
 app.use('/api/payments', paymentsRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/feedback', feedbackRoutes);
 
 // Sync Database and Start Server
 const startServer = async () => {
@@ -28,6 +30,7 @@ const startServer = async () => {
   // Use { force: true } only for development if you want to drop tables and recreate them
   try {
     const SiteContent = require('./models/SiteContent');
+    const Feedback = require('./models/Feedback');
     await sequelize.sync();
     console.log('✅ Database models synchronized.');
     
