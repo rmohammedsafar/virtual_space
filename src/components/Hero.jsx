@@ -43,7 +43,6 @@ const Hero = () => {
               direction="top"
               className="text-gradient"
             />
-            {titleLine2 && <br />}
             {titleLine2 && (
               <BlurText
                 text={titleLine2}

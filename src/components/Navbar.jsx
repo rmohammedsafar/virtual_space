@@ -32,9 +32,7 @@ const Navbar = () => {
         
         <div className="nav-actions" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           <Link to="/login" className="nav-link" style={{ fontWeight: 600 }}>Login</Link>
-          <StarBorder as={Link} to="/register" color="#00d4ff" speed="4s" className="nav-cta-border" style={{ borderRadius: '30px' }}>
-            <span className="btn-primary" style={{ display: 'inline-block', boxShadow: 'none' }}>Get Your Space</span>
-          </StarBorder>
+          <Link to="/register" className="btn-primary">Get Your Space</Link>
         </div>
       </div>
     </header>
