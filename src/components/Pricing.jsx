@@ -61,9 +61,9 @@ const Pricing = () => {
                 ))}
               </ul>
               {plan.popular ? (
-                <StarBorder as="button" color="#00d4ff" speed="4s" className="full-width" style={{ padding: 0, borderRadius: '30px' }}>
-                  <span className="btn-primary full-width" style={{ display: 'block', margin: 0 }}>{plan.buttonText}</span>
-                </StarBorder>
+                <button className="btn-primary full-width">
+                  {plan.buttonText}
+                </button>
               ) : (
                 <button className="btn-secondary full-width">
                   {plan.buttonText}

@@ -1,6 +1,7 @@
 .pricing {
   position: relative;
   overflow: hidden;
+  scroll-margin-top: 100px;
 }
 
 .pricing-grid {

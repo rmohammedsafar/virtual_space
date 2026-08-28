@@ -1,6 +1,7 @@
 .stats-section {
   padding: 6rem 0;
   background-color: var(--color-bg-dark);
+  scroll-margin-top: 100px;
 }
 
 .stats-hero {
