@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const Space = require('../models/Space');
+const SiteContent = require('../models/SiteContent');
 
 router.post('/', async (req, res) => {
   try {
@@ -13,11 +15,34 @@ router.post('/', async (req, res) => {
       });
     }
 
+    // Fetch dynamic platform context to make the AI aware of the actual website data
+    const spaces = await Space.findAll({ limit: 15 });
+    const content = await SiteContent.findAll();
+    
+    const availableSpacesContext = spaces.map(s => 
+      `- ${s.name} located at ${s.address} (₹${s.monthlyPrice}/mo)`
+    ).join('\n');
+
+    let dynamicContentContext = '';
+    content.forEach(c => {
+      dynamicContentContext += `- ${c.key}: ${c.value}\n`;
+    });
+
     const systemInstruction = `
 You are a helpful Customer Support Agent for "Quick Space", a platform where users can rent premium virtual environments and physical addresses for their businesses, events, and personal projects.
 Keep your answers friendly, concise, and professional. 
 Never discuss internal pricing strategies beyond what's publicly available (prices vary by space).
 Always try to be helpful and guide users to register an account or browse active spaces.
+
+=== LIVE PLATFORM KNOWLEDGE ===
+You have access to the following real-time data about the Quick Space platform. Use this information to answer user questions accurately!
+
+Currently Available Spaces:
+${availableSpacesContext || 'No spaces listed currently.'}
+
+Website Text & Taglines:
+${dynamicContentContext || 'No custom text configured.'}
+=================================
 `;
 
     const genAI = new GoogleGenerativeAI(apiKey);
