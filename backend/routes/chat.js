@@ -84,7 +84,7 @@ ${dynamicContentContext || 'No custom text configured.'}
     res.json({ success: true, message: text });
   } catch (error) {
     console.error('AI Chat Error:', error);
-    res.status(500).json({ success: false, error: 'Failed to process AI chat. Please try again later.' });
+    res.status(500).json({ success: false, error: 'Failed to process AI chat: ' + error.message });
   }
 });
 
