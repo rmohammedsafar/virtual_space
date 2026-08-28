@@ -10,7 +10,6 @@ import SellerDashboard from './pages/SellerDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminLogin from './pages/AdminLogin';
 import RentalsPage from './pages/RentalsPage';
-import ThemeToggle from './components/ThemeToggle';
 import { Toaster } from 'react-hot-toast';
 
 import { ContentProvider } from './context/ContentContext';
@@ -29,7 +28,6 @@ function App() {
     <ContentProvider>
       <Router>
         <Toaster position="bottom-center" />
-        <ThemeToggle />
         <Chatbot />
         <Routes>
           <Route path="/" element={<LandingPage />} />

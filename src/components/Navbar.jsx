@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './Navbar.css';
-import StarBorder from './ReactBits/StarBorder';
+import ThemeToggle from './ThemeToggle';
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -33,6 +33,7 @@ const Navbar = () => {
         <div className="nav-actions" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           <Link to="/login" className="nav-link" style={{ fontWeight: 600 }}>Login</Link>
           <Link to="/register" className="btn-primary">Get Your Space</Link>
+          <ThemeToggle inline />
         </div>
       </div>
     </header>
