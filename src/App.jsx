@@ -14,13 +14,14 @@ import ThemeToggle from './components/ThemeToggle';
 import { Toaster } from 'react-hot-toast';
 
 import { ContentProvider } from './context/ContentContext';
+import Chatbot from './components/Chatbot';
 
 function App() {
   useEffect(() => {
     AOS.init({
       duration: 800,
-      once: true, // whether animation should happen only once - while scrolling down
-      offset: 100, // offset (in px) from the original trigger point
+      once: true,
+      offset: 100,
     });
   }, []);
 
@@ -29,6 +30,7 @@ function App() {
       <Router>
         <Toaster position="bottom-center" />
         <ThemeToggle />
+        <Chatbot />
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />

@@ -6,6 +6,7 @@ const cors = require('cors');
 const { connectDB, sequelize } = require('./config/database');
 const apiRoutes = require('./routes/api');
 const paymentsRoutes = require('./routes/payments');
+const chatRoutes = require('./routes/chat');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -17,6 +18,7 @@ app.use(express.json());
 // Routes
 app.use('/api', apiRoutes);
 app.use('/api/payments', paymentsRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Sync Database and Start Server
 const startServer = async () => {
