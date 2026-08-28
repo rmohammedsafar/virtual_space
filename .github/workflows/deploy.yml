@@ -38,7 +38,7 @@ jobs:
             npm run build
             
             # Restart frontend PM2 process if it exists, otherwise start it
-            pm2 restart frontend || sudo pm2 serve dist 80 --name "frontend" --spa
+            sudo pm2 restart frontend || sudo pm2 serve dist 80 --name "frontend" --spa
             
             # Save PM2 state so it restarts on server reboot
             pm2 save
