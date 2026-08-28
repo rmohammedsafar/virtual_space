@@ -7,7 +7,15 @@ import ShinyText from './ReactBits/ShinyText';
 import CountUp from './ReactBits/CountUp';
 import { MapPin, Mail, Phone, Users, Shield, Zap } from 'lucide-react';
 
+import { useContent } from '../context/ContentContext';
+
 const Hero = () => {
+  const { content } = useContent();
+
+  const titleLines = content.hero_title ? content.hero_title.split('\n') : ['Find Your Perfect', 'Virtual Space'];
+  const titleLine1 = titleLines[0];
+  const titleLine2 = titleLines[1] || '';
+
   return (
     <section className="hero" id="home" style={{ position: 'relative', overflow: 'hidden' }}>
       <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 1 }}>
@@ -29,28 +37,29 @@ const Hero = () => {
           
           <h1 className="hero-title">
             <BlurText
-              text="Claim Your Premium"
+              text={titleLine1}
               delay={50}
               animateBy="words"
               direction="top"
               className="text-gradient"
             />
-            <br />
-            <BlurText
-              text="Virtual Business Space"
-              delay={50}
-              animateBy="words"
-              direction="bottom"
-            />
+            {titleLine2 && <br />}
+            {titleLine2 && (
+              <BlurText
+                text={titleLine2}
+                delay={50}
+                animateBy="words"
+                direction="bottom"
+              />
+            )}
           </h1>
           
           <p className="hero-subtitle" data-aos="fade-up" data-aos-delay="500">
-            Establish your business presence anywhere in the world. Register your company, 
-            get a prestigious physical address, and manage your virtual space seamlessly.
+            {content.hero_subtitle || 'Establish your business presence anywhere in the world. Register your company, get a prestigious physical address, and manage your virtual space seamlessly.'}
           </p>
           
           <div className="hero-actions" data-aos="fade-up" data-aos-delay="600">
-            <Link to="/register" className="btn-primary">Register Your Business</Link>
+            <Link to="/register" className="btn-primary">{content.hero_cta || 'Explore Spaces'}</Link>
             <a href="#features" className="btn-secondary">Explore Features</a>
           </div>
           

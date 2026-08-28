@@ -328,4 +328,40 @@ router.delete('/admin/spaces/:id', async (req, res) => {
   }
 });
 
+const SiteContent = require('../models/SiteContent');
+
+// Get all site content
+router.get('/content', async (req, res) => {
+  try {
+    const content = await SiteContent.findAll();
+    // Convert array of {key, value} to a single object map
+    const contentMap = content.reduce((acc, item) => {
+      acc[item.key] = item.value;
+      return acc;
+    }, {});
+    res.json({ success: true, data: contentMap, raw: content });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Update site content (Admin)
+router.put('/admin/content/:key', async (req, res) => {
+  try {
+    const { key } = req.params;
+    const { value } = req.body;
+    
+    let contentItem = await SiteContent.findOne({ where: { key } });
+    if (contentItem) {
+      await contentItem.update({ value });
+    } else {
+      contentItem = await SiteContent.create({ key, value });
+    }
+    
+    res.json({ success: true, message: 'Content updated successfully', item: contentItem });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 module.exports = router;

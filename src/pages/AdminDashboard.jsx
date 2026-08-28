@@ -18,6 +18,7 @@ const AdminDashboard = () => {
   const [modalLoading, setModalLoading] = useState(false);
   const [editSpaceData, setEditSpaceData] = useState(null);
   const [editUserData, setEditUserData] = useState(null);
+  const [siteContent, setSiteContent] = useState({});
 
   const [approvals, setApprovals] = useState([
     { id: 1, type: 'New Space Listing', name: 'Miami Beach Front' },
@@ -85,6 +86,38 @@ const AdminDashboard = () => {
       } finally {
         setModalLoading(false);
       }
+    } else if (actionName === 'Manage Site Content') {
+      setModalLoading(true);
+      try {
+        const res = await fetch('http://3.110.191.121:5000/api/content');
+        const data = await res.json();
+        if (data.success) {
+          setSiteContent(data.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch site content", err);
+      } finally {
+        setModalLoading(false);
+      }
+    }
+  };
+
+  const handleUpdateContent = async (key) => {
+    try {
+      const res = await fetch(`http://3.110.191.121:5000/api/admin/content/${key}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ value: siteContent[key] })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert(`${key} updated successfully! Reload the site to see changes.`);
+      } else {
+        alert(data.error || 'Failed to update content');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Network error');
     }
   };
 
@@ -234,6 +267,7 @@ const AdminDashboard = () => {
           <h3 style={{ marginBottom: '1rem', color: 'var(--color-primary-light)' }}>Quick Actions</h3>
           <button onClick={() => handleQuickAction('Manage Users')} className="btn-secondary" style={{ width: '100%', marginBottom: '1rem' }}>Manage Users</button>
           <button onClick={() => handleQuickAction('Manage Spaces')} className="btn-secondary" style={{ width: '100%', marginBottom: '1rem' }}>Manage Spaces</button>
+          <button onClick={() => handleQuickAction('Manage Site Content')} className="btn-secondary" style={{ width: '100%', marginBottom: '1rem' }}>Manage Site Content</button>
           <button onClick={() => handleQuickAction('Platform Settings')} className="btn-secondary" style={{ width: '100%', marginBottom: '1rem' }}>Platform Settings</button>
           <button onClick={() => handleQuickAction('Support Tickets')} className="btn-secondary" style={{ width: '100%' }}>View Support Tickets (4)</button>
         </div>
@@ -364,6 +398,34 @@ const AdminDashboard = () => {
                       ))}
                     </tbody>
                   </table>
+                )}
+              </div>
+            )}
+
+            {activeModal === 'Manage Site Content' && (
+              <div>
+                <p style={{ color: '#aaa', marginBottom: '1.5rem' }}>Edit the static text shown on the website (CMS).</p>
+                {modalLoading ? <p>Loading content...</p> : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                    <div style={{ background: 'var(--color-bg-card)', padding: '1rem', borderRadius: '8px' }}>
+                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Hero Title (Landing Page)</label>
+                      <p style={{ fontSize: '0.8rem', color: '#aaa', marginBottom: '10px' }}>Use \n for line breaks</p>
+                      <textarea className="form-input" rows="2" value={siteContent.hero_title || ''} onChange={e => setSiteContent({...siteContent, hero_title: e.target.value})} style={{ marginBottom: '10px' }}></textarea>
+                      <button className="btn-primary" style={{ padding: '5px 15px', fontSize: '0.9rem' }} onClick={() => handleUpdateContent('hero_title')}>Save Title</button>
+                    </div>
+                    
+                    <div style={{ background: 'var(--color-bg-card)', padding: '1rem', borderRadius: '8px' }}>
+                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Hero Subtitle</label>
+                      <textarea className="form-input" rows="3" value={siteContent.hero_subtitle || ''} onChange={e => setSiteContent({...siteContent, hero_subtitle: e.target.value})} style={{ marginBottom: '10px' }}></textarea>
+                      <button className="btn-primary" style={{ padding: '5px 15px', fontSize: '0.9rem' }} onClick={() => handleUpdateContent('hero_subtitle')}>Save Subtitle</button>
+                    </div>
+
+                    <div style={{ background: 'var(--color-bg-card)', padding: '1rem', borderRadius: '8px' }}>
+                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Hero Button Text</label>
+                      <input type="text" className="form-input" value={siteContent.hero_cta || ''} onChange={e => setSiteContent({...siteContent, hero_cta: e.target.value})} style={{ marginBottom: '10px' }} />
+                      <button className="btn-primary" style={{ padding: '5px 15px', fontSize: '0.9rem' }} onClick={() => handleUpdateContent('hero_cta')}>Save Button Text</button>
+                    </div>
+                  </div>
                 )}
               </div>
             )}
