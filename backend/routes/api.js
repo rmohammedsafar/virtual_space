@@ -275,5 +275,57 @@ router.delete('/admin/users/:id', async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 });
+// Update a user (Admin edit)
+router.put('/admin/users/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { email, role } = req.body;
+    
+    const userToUpdate = await User.findByPk(id);
+    if (!userToUpdate) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+    
+    await userToUpdate.update({ email, role });
+    res.json({ success: true, message: 'User updated successfully', user: userToUpdate });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Update a space (Admin edit)
+router.put('/admin/spaces/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, address, monthlyPrice } = req.body;
+    
+    const spaceToUpdate = await Space.findByPk(id);
+    if (!spaceToUpdate) {
+      return res.status(404).json({ success: false, error: 'Space not found' });
+    }
+    
+    await spaceToUpdate.update({ name, address, monthlyPrice });
+    res.json({ success: true, message: 'Space updated successfully', space: spaceToUpdate });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Delete a space (Admin edit)
+router.delete('/admin/spaces/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const spaceToDelete = await Space.findByPk(id);
+    
+    if (!spaceToDelete) {
+      return res.status(404).json({ success: false, error: 'Space not found' });
+    }
+    
+    await spaceToDelete.destroy();
+    res.json({ success: true, message: 'Space deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
 
 module.exports = router;

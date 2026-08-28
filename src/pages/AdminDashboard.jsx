@@ -14,7 +14,10 @@ const AdminDashboard = () => {
   const [user, setUser] = useState(null);
   const [activeModal, setActiveModal] = useState(null);
   const [userList, setUserList] = useState([]);
+  const [spaceList, setSpaceList] = useState([]);
   const [modalLoading, setModalLoading] = useState(false);
+  const [editSpaceData, setEditSpaceData] = useState(null);
+  const [editUserData, setEditUserData] = useState(null);
 
   const [approvals, setApprovals] = useState([
     { id: 1, type: 'New Space Listing', name: 'Miami Beach Front' },
@@ -69,6 +72,80 @@ const AdminDashboard = () => {
       } finally {
         setModalLoading(false);
       }
+    } else if (actionName === 'Manage Spaces') {
+      setModalLoading(true);
+      try {
+        const res = await fetch('http://3.110.191.121:5000/api/spaces');
+        const data = await res.json();
+        if (data.success) {
+          setSpaceList(data.spaces);
+        }
+      } catch (err) {
+        console.error("Failed to fetch spaces", err);
+      } finally {
+        setModalLoading(false);
+      }
+    }
+  };
+
+  const handleUpdateSpace = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch(`http://3.110.191.121:5000/api/admin/spaces/${editSpaceData.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editSpaceData)
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSpaceList(spaceList.map(s => s.id === editSpaceData.id ? data.space : s));
+        setEditSpaceData(null);
+        alert('Space updated successfully!');
+      } else {
+        alert(data.error || 'Failed to update space');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Network error');
+    }
+  };
+
+  const handleDeleteSpace = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this space?')) return;
+    try {
+      const res = await fetch(`http://3.110.191.121:5000/api/admin/spaces/${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        setSpaceList(spaceList.filter(s => s.id !== id));
+        alert('Space deleted successfully!');
+      } else {
+        alert(data.error || 'Failed to delete space');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Network error');
+    }
+  };
+
+  const handleUpdateUser = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch(`http://3.110.191.121:5000/api/admin/users/${editUserData.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editUserData)
+      });
+      const data = await res.json();
+      if (data.success) {
+        setUserList(userList.map(u => u.id === editUserData.id ? data.user : u));
+        setEditUserData(null);
+        alert('User updated successfully!');
+      } else {
+        alert(data.error || 'Failed to update user');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Network error');
     }
   };
 
@@ -156,6 +233,7 @@ const AdminDashboard = () => {
         <div className="glass-panel" style={{ padding: '2rem' }}>
           <h3 style={{ marginBottom: '1rem', color: 'var(--color-primary-light)' }}>Quick Actions</h3>
           <button onClick={() => handleQuickAction('Manage Users')} className="btn-secondary" style={{ width: '100%', marginBottom: '1rem' }}>Manage Users</button>
+          <button onClick={() => handleQuickAction('Manage Spaces')} className="btn-secondary" style={{ width: '100%', marginBottom: '1rem' }}>Manage Spaces</button>
           <button onClick={() => handleQuickAction('Platform Settings')} className="btn-secondary" style={{ width: '100%', marginBottom: '1rem' }}>Platform Settings</button>
           <button onClick={() => handleQuickAction('Support Tickets')} className="btn-secondary" style={{ width: '100%' }}>View Support Tickets (4)</button>
         </div>
@@ -186,7 +264,27 @@ const AdminDashboard = () => {
 
             {activeModal === 'Manage Users' && (
               <div>
-                {modalLoading ? <p>Loading users...</p> : (
+                {modalLoading ? <p>Loading users...</p> : editUserData ? (
+                  <form onSubmit={handleUpdateUser} style={{ background: 'var(--color-bg-card)', padding: '1rem', borderRadius: '8px' }}>
+                    <h4 style={{ marginBottom: '1rem' }}>Edit User (ID: {editUserData.id})</h4>
+                    <div style={{ marginBottom: '1rem' }}>
+                      <label style={{ display: 'block', marginBottom: '5px' }}>Email</label>
+                      <input type="email" required className="form-input" value={editUserData.email} onChange={e => setEditUserData({...editUserData, email: e.target.value})} />
+                    </div>
+                    <div style={{ marginBottom: '1rem' }}>
+                      <label style={{ display: 'block', marginBottom: '5px' }}>Role</label>
+                      <select className="form-input" value={editUserData.role} onChange={e => setEditUserData({...editUserData, role: e.target.value})}>
+                        <option value="user">User</option>
+                        <option value="seller">Seller</option>
+                        <option value="admin">Admin</option>
+                      </select>
+                    </div>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      <button type="submit" className="btn-primary" style={{ flex: 1 }}>Save Changes</button>
+                      <button type="button" className="btn-secondary" style={{ flex: 1 }} onClick={() => setEditUserData(null)}>Cancel</button>
+                    </div>
+                  </form>
+                ) : (
                   <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
                     <thead>
                       <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
@@ -194,13 +292,13 @@ const AdminDashboard = () => {
                         <th style={{ padding: '10px' }}>Email</th>
                         <th style={{ padding: '10px' }}>Role</th>
                         <th style={{ padding: '10px' }}>Joined</th>
-                        <th style={{ padding: '10px' }}>Action</th>
+                        <th style={{ padding: '10px' }}>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {userList.map((u, index) => (
                         <tr key={u.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                          <td style={{ padding: '10px' }}>{index + 1}</td>
+                          <td style={{ padding: '10px' }}>{u.id}</td>
                           <td style={{ padding: '10px' }}>{u.email}</td>
                           <td style={{ padding: '10px' }}>
                             <span className="badge" style={{ background: u.role === 'admin' ? 'rgba(255, 71, 87, 0.2)' : u.role === 'seller' ? 'rgba(39, 201, 63, 0.2)' : 'rgba(255, 255, 255, 0.1)' }}>
@@ -208,8 +306,59 @@ const AdminDashboard = () => {
                             </span>
                           </td>
                           <td style={{ padding: '10px' }}>{new Date(u.createdAt).toLocaleDateString()}</td>
-                          <td style={{ padding: '10px' }}>
-                            <button className="btn-secondary" style={{ padding: '5px 10px', fontSize: '0.8rem' }} onClick={() => handleSuspendUser(u.id, u.email)}>Suspend</button>
+                          <td style={{ padding: '10px', display: 'flex', gap: '5px' }}>
+                            <button className="btn-secondary" style={{ padding: '5px 10px', fontSize: '0.8rem' }} onClick={() => setEditUserData(u)}>Edit</button>
+                            <button className="btn-secondary" style={{ padding: '5px 10px', fontSize: '0.8rem', color: '#ff4757', borderColor: '#ff4757' }} onClick={() => handleSuspendUser(u.id, u.email)}>Suspend</button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            )}
+
+            {activeModal === 'Manage Spaces' && (
+              <div>
+                {modalLoading ? <p>Loading spaces...</p> : editSpaceData ? (
+                  <form onSubmit={handleUpdateSpace} style={{ background: 'var(--color-bg-card)', padding: '1rem', borderRadius: '8px' }}>
+                    <h4 style={{ marginBottom: '1rem' }}>Edit Space (ID: {editSpaceData.id})</h4>
+                    <div style={{ marginBottom: '1rem' }}>
+                      <label style={{ display: 'block', marginBottom: '5px' }}>Name</label>
+                      <input type="text" required className="form-input" value={editSpaceData.name} onChange={e => setEditSpaceData({...editSpaceData, name: e.target.value})} />
+                    </div>
+                    <div style={{ marginBottom: '1rem' }}>
+                      <label style={{ display: 'block', marginBottom: '5px' }}>Address</label>
+                      <input type="text" required className="form-input" value={editSpaceData.address} onChange={e => setEditSpaceData({...editSpaceData, address: e.target.value})} />
+                    </div>
+                    <div style={{ marginBottom: '1rem' }}>
+                      <label style={{ display: 'block', marginBottom: '5px' }}>Monthly Price (₹)</label>
+                      <input type="number" required className="form-input" value={editSpaceData.monthlyPrice} onChange={e => setEditSpaceData({...editSpaceData, monthlyPrice: e.target.value})} />
+                    </div>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      <button type="submit" className="btn-primary" style={{ flex: 1 }}>Save Changes</button>
+                      <button type="button" className="btn-secondary" style={{ flex: 1 }} onClick={() => setEditSpaceData(null)}>Cancel</button>
+                    </div>
+                  </form>
+                ) : (
+                  <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
+                        <th style={{ padding: '10px' }}>ID</th>
+                        <th style={{ padding: '10px' }}>Name</th>
+                        <th style={{ padding: '10px' }}>Price</th>
+                        <th style={{ padding: '10px' }}>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {spaceList.map((space) => (
+                        <tr key={space.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                          <td style={{ padding: '10px' }}>{space.id}</td>
+                          <td style={{ padding: '10px' }}>{space.name}</td>
+                          <td style={{ padding: '10px' }}>₹{space.monthlyPrice}</td>
+                          <td style={{ padding: '10px', display: 'flex', gap: '5px' }}>
+                            <button className="btn-secondary" style={{ padding: '5px 10px', fontSize: '0.8rem' }} onClick={() => setEditSpaceData(space)}>Edit</button>
+                            <button className="btn-secondary" style={{ padding: '5px 10px', fontSize: '0.8rem', color: '#ff4757', borderColor: '#ff4757' }} onClick={() => handleDeleteSpace(space.id)}>Delete</button>
                           </td>
                         </tr>
                       ))}
