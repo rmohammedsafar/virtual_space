@@ -13,15 +13,6 @@ router.post('/', async (req, res) => {
       });
     }
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-    const { message, history } = req.body;
-
-    if (!message) {
-      return res.status(400).json({ success: false, error: 'Message is required' });
-    }
-
     const systemInstruction = `
 You are a helpful Customer Support Agent for "Quick Space", a platform where users can rent premium virtual environments and physical addresses for their businesses, events, and personal projects.
 Keep your answers friendly, concise, and professional. 
@@ -29,21 +20,36 @@ Never discuss internal pricing strategies beyond what's publicly available (pric
 Always try to be helpful and guide users to register an account or browse active spaces.
 `;
 
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-1.5-flash",
+      systemInstruction: systemInstruction
+    });
+
+    const { message, history } = req.body;
+
+    if (!message) {
+      return res.status(400).json({ success: false, error: 'Message is required' });
+    }
+
     // Convert history format if provided
     let chatHistory = [];
     if (history && Array.isArray(history)) {
-      chatHistory = history.map(msg => ({
+      // Gemini expects history to start with 'user' and strictly alternate.
+      // Skip the initial 'model' greeting sent by the frontend UI.
+      let validHistory = [...history];
+      while (validHistory.length > 0 && validHistory[0].role === 'model') {
+        validHistory.shift();
+      }
+      
+      chatHistory = validHistory.map(msg => ({
         role: msg.role === 'user' ? 'user' : 'model',
         parts: [{ text: msg.text }]
       }));
     }
 
     const chat = model.startChat({
-      history: [
-        { role: 'user', parts: [{ text: "SYSTEM INSTRUCTION (Read silently and act as this persona): " + systemInstruction }] },
-        { role: 'model', parts: [{ text: "Understood! I am the Quick Space Customer Support Agent. How can I help you today?" }] },
-        ...chatHistory
-      ]
+      history: chatHistory
     });
 
     const result = await chat.sendMessage(message);
