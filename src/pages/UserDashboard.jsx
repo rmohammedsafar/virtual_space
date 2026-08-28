@@ -52,7 +52,7 @@ const UserDashboard = () => {
   return (
     <div style={{ minHeight: '100vh', padding: '2rem' }}>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>
-        <h2><span className="text-gradient">Quick Space</span> Dashboard <span style={{fontSize: '1rem', color: 'var(--color-text-muted)', fontWeight: 'normal'}}>({user.email})</span></h2>
+        <h2><Link to="/" style={{ textDecoration: 'none' }}><span className="text-gradient">Quick Space</span></Link> Dashboard <span style={{fontSize: '1rem', color: 'var(--color-text-muted)', fontWeight: 'normal'}}>({user.email})</span></h2>
         <button onClick={handleLogout} className="btn-secondary">Logout</button>
       </header>
 

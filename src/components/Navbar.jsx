@@ -18,7 +18,7 @@ const Navbar = () => {
     <header className={`navbar ${scrolled ? 'scrolled' : ''}`}>
       <div className="container flex items-center justify-between">
         <div className="logo-container">
-          <Link to="/" className="logo">
+          <Link to="/" className="logo" onClick={() => window.scrollTo(0, 0)}>
             <span className="logo-icon">Q</span>
             <span className="logo-text">Quick <span className="text-gradient">Space</span></span>
           </Link>
