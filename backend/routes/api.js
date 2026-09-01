@@ -76,7 +76,7 @@ router.post('/auth/send-otp', async (req, res) => {
     res.json({ success: true, message: 'OTP sent successfully' });
   } catch (error) {
     console.error('Error sending OTP:', error);
-    res.status(500).json({ success: false, error: 'Failed to send SMS' });
+    res.status(500).json({ success: false, error: `AWS Error: ${error.message}` });
   }
 });
 
