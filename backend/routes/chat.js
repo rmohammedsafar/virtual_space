@@ -47,7 +47,7 @@ ${dynamicContentContext || 'No custom text configured.'}
 
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-1.5-flash-latest",
+      model: "gemini-pro",
       systemInstruction: systemInstruction
     });
 

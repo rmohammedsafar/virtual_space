@@ -76,7 +76,7 @@ router.post('/', async (req, res) => {
 
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-1.5-flash-latest",
+      model: "gemini-pro",
       tools: toolDeclarations,
       systemInstruction: "You are an Admin Database Agent. You help the system administrator query the application's database. Use the provided tools to answer the admin's questions about users, spaces, and rentals. Present the data clearly."
     });
