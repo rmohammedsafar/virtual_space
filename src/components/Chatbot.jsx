@@ -1,9 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Minimize2 } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 
 const Chatbot = () => {
+  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
+
     { role: 'model', text: 'Hi! I am the Quick Space AI Assistant. How can I help you today?' }
   ]);
   const [input, setInput] = useState('');
@@ -18,7 +21,12 @@ const Chatbot = () => {
     scrollToBottom();
   }, [messages]);
 
+  if (location.pathname.startsWith('/admin')) {
+    return null;
+  }
+
   const handleSend = async (e) => {
+
     e.preventDefault();
     if (!input.trim()) return;
 
