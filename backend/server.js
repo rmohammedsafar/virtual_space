@@ -8,6 +8,7 @@ const apiRoutes = require('./routes/api');
 const paymentsRoutes = require('./routes/payments');
 const chatRoutes = require('./routes/chat');
 const feedbackRoutes = require('./routes/feedback');
+const adminAgentRoutes = require('./routes/admin-agent');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -21,6 +22,7 @@ app.use('/api', apiRoutes);
 app.use('/api/payments', paymentsRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/feedback', feedbackRoutes);
+app.use('/api/admin-agent', adminAgentRoutes);
 
 // Sync Database and Start Server
 const startServer = async () => {

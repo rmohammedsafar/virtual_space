@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import AdminAIAgent from '../components/AdminAIAgent';
+
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -533,6 +535,9 @@ const AdminDashboard = () => {
           </div>
         </div>
       )}
+
+      {/* AI Database Agent Chat */}
+      <AdminAIAgent />
 
     </div>
   );
