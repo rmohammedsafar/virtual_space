@@ -21,7 +21,7 @@ const functions = {
   getRecentUsers: async (args) => {
     const limit = args?.limit || 5;
     const users = await User.findAll({ limit, order: [['createdAt', 'DESC']] });
-    return users.map(u => ({ id: u.id, email: u.email, role: u.role }));
+    return users.map(u => ({ id: u.id, email: u.email, role: u.role, phone: u.phone || 'N/A', companyName: u.companyName || 'N/A' }));
   }
 };
 
@@ -78,7 +78,7 @@ router.post('/', async (req, res) => {
     const model = genAI.getGenerativeModel({ 
       model: "gemini-3.6-flash",
       tools: toolDeclarations,
-      systemInstruction: "You are an Admin Database Agent. You help the system administrator query the application's database. Use the provided tools to answer the admin's questions about users, spaces, and rentals. Present the data clearly."
+      systemInstruction: "You are an Admin Database Agent. You help the system administrator query the database. Use the provided tools. CRITICAL: Never use Markdown tables to format data. Always present data in clean, readable bulleted lists. The chat UI does not support markdown tables."
     });
     let chatHistory = [];
     if (history && Array.isArray(history)) {

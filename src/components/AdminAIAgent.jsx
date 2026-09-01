@@ -125,6 +125,7 @@ const AdminAIAgent = () => {
                 borderRadius: '12px',
                 maxWidth: '85%',
                 wordWrap: 'break-word',
+                whiteSpace: 'pre-wrap',
                 fontSize: '0.95rem',
                 borderBottomRightRadius: msg.role === 'user' ? '4px' : '12px',
                 borderBottomLeftRadius: msg.role === 'user' ? '12px' : '4px'
