@@ -2,13 +2,13 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCZXm6VyOeDokUaAoHjX6UfnzsYKkYO1_s",
-  authDomain: "virtualspace-128ef.firebaseapp.com",
-  projectId: "virtualspace-128ef",
-  storageBucket: "virtualspace-128ef.firebasestorage.app",
-  messagingSenderId: "821263873854",
-  appId: "1:821263873854:web:9267b4a12bfcbaeec69e6f",
-  measurementId: "G-20H170PEG2"
+  apiKey: "AIzaSyDjc_Ys8OHzoLPJhq-z4JMSCHopywFs9rw",
+  authDomain: "virtualspace-67525.firebaseapp.com",
+  projectId: "virtualspace-67525",
+  storageBucket: "virtualspace-67525.firebasestorage.app",
+  messagingSenderId: "137749016636",
+  appId: "1:137749016636:web:d09da639e9f34d37a89339",
+  measurementId: "G-7LZNFPBK98"
 };
 
 // Initialize Firebase
