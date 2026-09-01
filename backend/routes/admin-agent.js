@@ -75,12 +75,31 @@ router.post('/', async (req, res) => {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
+    
+    // Dynamically find a valid model for this API key to prevent 404 errors
+    let selectedModel = "gemini-1.5-flash"; // default fallback
+    try {
+      const modelRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+      const modelData = await modelRes.json();
+      if (modelData.models) {
+        // Try to find a flash model, otherwise fallback to any available model that supports generateContent
+        const validModels = modelData.models.filter(m => m.supportedGenerationMethods.includes("generateContent"));
+        const flashModel = validModels.find(m => m.name.includes("flash"));
+        if (flashModel) {
+          selectedModel = flashModel.name.replace('models/', '');
+        } else if (validModels.length > 0) {
+          selectedModel = validModels[0].name.replace('models/', '');
+        }
+      }
+    } catch (e) {
+      console.log("Failed to fetch models dynamically, using default.", e);
+    }
+
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-pro",
+      model: selectedModel,
       tools: toolDeclarations,
       systemInstruction: "You are an Admin Database Agent. You help the system administrator query the application's database. Use the provided tools to answer the admin's questions about users, spaces, and rentals. Present the data clearly."
     });
-
     let chatHistory = [];
     if (history && Array.isArray(history)) {
       chatHistory = history.map(msg => ({

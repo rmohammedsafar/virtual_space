@@ -46,8 +46,27 @@ ${dynamicContentContext || 'No custom text configured.'}
 `;
 
     const genAI = new GoogleGenerativeAI(apiKey);
+    
+    // Dynamically find a valid model for this API key to prevent 404 errors
+    let selectedModel = "gemini-1.5-flash"; // default fallback
+    try {
+      const modelRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+      const modelData = await modelRes.json();
+      if (modelData.models) {
+        const validModels = modelData.models.filter(m => m.supportedGenerationMethods.includes("generateContent"));
+        const flashModel = validModels.find(m => m.name.includes("flash"));
+        if (flashModel) {
+          selectedModel = flashModel.name.replace('models/', '');
+        } else if (validModels.length > 0) {
+          selectedModel = validModels[0].name.replace('models/', '');
+        }
+      }
+    } catch (e) {
+      console.log("Failed to fetch models dynamically, using default.", e);
+    }
+
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-pro",
+      model: selectedModel,
       systemInstruction: systemInstruction
     });
 
