@@ -5,8 +5,9 @@ const Space = require('../models/Space');
 const Rental = require('../models/Rental'); // Ensure Rental is imported
 const multer = require('multer');
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+const { SNSClient, PublishCommand } = require('@aws-sdk/client-sns');
 const { v4: uuidv4 } = require('uuid');
-const admin = require('../config/firebaseAdmin');
+const OTP = require('../models/OTP');
 
 // AWS S3 Configuration
 const s3 = new S3Client({
@@ -17,6 +18,15 @@ const s3 = new S3Client({
   }
 });
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
+
+// AWS SNS Configuration for OTP
+const sns = new SNSClient({
+  region: process.env.AWS_REGION || 'ap-south-1',
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+  }
+});
 
 // Simple Login Route
 router.post('/auth/login', async (req, res) => {
@@ -46,22 +56,48 @@ router.post('/auth/login', async (req, res) => {
   }
 });
 
+// Send OTP via AWS SNS
+router.post('/auth/send-otp', async (req, res) => {
+  try {
+    const { phone } = req.body;
+    if (!phone) return res.status(400).json({ success: false, error: 'Phone number is required' });
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 5 * 60000); // 5 minutes
+
+    await OTP.upsert({ phone, otp, expiresAt });
+
+    const command = new PublishCommand({
+      PhoneNumber: phone,
+      Message: `Your QuickSpace verification code is: ${otp}. It expires in 5 minutes.`
+    });
+    
+    await sns.send(command);
+    res.json({ success: true, message: 'OTP sent successfully' });
+  } catch (error) {
+    console.error('Error sending OTP:', error);
+    res.status(500).json({ success: false, error: 'Failed to send SMS' });
+  }
+});
+
 // Phone Login Route
 router.post('/auth/phone-login', async (req, res) => {
   try {
-    const { idToken } = req.body;
+    const { phoneNumber, otp } = req.body;
     
-    if (!idToken) {
-      return res.status(400).json({ success: false, error: 'ID token is required' });
+    if (!phoneNumber || !otp) {
+      return res.status(400).json({ success: false, error: 'Phone number and OTP are required' });
     }
 
-    // Verify the Firebase ID token
-    const decodedToken = await admin.auth().verifyIdToken(idToken);
-    const phoneNumber = decodedToken.phone_number;
-
-    if (!phoneNumber) {
-      return res.status(400).json({ success: false, error: 'Phone number not found in token' });
+    const otpRecord = await OTP.findOne({ where: { phone: phoneNumber } });
+    if (!otpRecord || otpRecord.otp !== otp) {
+      return res.status(401).json({ success: false, error: 'Invalid OTP' });
     }
+    if (new Date() > otpRecord.expiresAt) {
+      return res.status(401).json({ success: false, error: 'OTP expired' });
+    }
+
+    await otpRecord.destroy(); // OTP used successfully
     
     let user = await User.findOne({ where: { phone: phoneNumber } });
     
@@ -76,9 +112,6 @@ router.post('/auth/phone-login', async (req, res) => {
     });
   } catch (error) {
     console.error('Phone login error:', error);
-    if (error.code && error.code.startsWith('auth/')) {
-      return res.status(401).json({ success: false, error: 'Invalid or expired token' });
-    }
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -86,22 +119,23 @@ router.post('/auth/phone-login', async (req, res) => {
 // Registration Route
 router.post('/auth/register', async (req, res) => {
   try {
-    const { email, password, role, companyName, phone, idToken } = req.body;
+    const { email, password, role, companyName, phone, otp } = req.body;
     
-    let verifiedPhone = phone;
-
-    // If ID token is provided, verify it (required for secure phone auth)
-    if (idToken) {
-      try {
-        const decodedToken = await admin.auth().verifyIdToken(idToken);
-        if (decodedToken.phone_number) {
-          verifiedPhone = decodedToken.phone_number;
-        }
-      } catch (authErr) {
-        console.error('Token verification failed:', authErr);
-        return res.status(401).json({ success: false, error: 'Invalid or expired ID token' });
-      }
+    if (!phone || !otp) {
+      return res.status(400).json({ success: false, error: 'Phone number and OTP are required for registration' });
     }
+
+    const otpRecord = await OTP.findOne({ where: { phone } });
+    if (!otpRecord || otpRecord.otp !== otp) {
+      return res.status(401).json({ success: false, error: 'Invalid OTP' });
+    }
+    if (new Date() > otpRecord.expiresAt) {
+      return res.status(401).json({ success: false, error: 'OTP expired' });
+    }
+
+    await otpRecord.destroy(); // valid, consume it
+
+    let verifiedPhone = phone;
     
     // Check if user already exists
     let existingUser = await User.findOne({ where: { email } });

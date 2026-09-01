@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import '../components/Registration.css'; // Reuse form styles
-import { auth } from '../firebase';
-import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
@@ -16,24 +14,12 @@ const RegisterPage = () => {
   
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
-  const [confirmationResult, setConfirmationResult] = useState(null);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleChange = (e) => {
     setFormData({...formData, [e.target.name]: e.target.value});
-  };
-
-  const setupRecaptcha = () => {
-    if (!window.recaptchaVerifier) {
-      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        'size': 'invisible',
-        'callback': (response) => {
-          // reCAPTCHA solved
-        }
-      });
-    }
   };
 
   const handleSendOtp = async (e) => {
@@ -47,22 +33,27 @@ const RegisterPage = () => {
     setError('');
 
     try {
-      setupRecaptcha();
-      const appVerifier = window.recaptchaVerifier;
-      
-      // Strip non-digits and enforce +91 format
       let cleanPhone = formData.phone.replace(/\D/g, '');
       if (cleanPhone.length === 12 && cleanPhone.startsWith('91')) {
           cleanPhone = cleanPhone.substring(2);
       }
       const formattedPhone = '+91' + cleanPhone;
       
-      const result = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
-      setConfirmationResult(result);
-      setOtpSent(true);
+      const response = await fetch('http://3.110.191.121:5000/api/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: formattedPhone })
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        setOtpSent(true);
+      } else {
+        setError(data.error || 'Failed to send OTP');
+      }
     } catch (err) {
       console.error(err);
-      setError(`Failed to send OTP: ${err.message || 'Check console for details.'}`);
+      setError('Could not connect to server.');
     } finally {
       setLoading(false);
     }
@@ -74,14 +65,9 @@ const RegisterPage = () => {
     setError('');
 
     try {
-      // 1. Verify OTP with Firebase
-      const result = await confirmationResult.confirm(otp);
-      const idToken = await result.user.getIdToken();
-      
-      // 2. Register user in backend
       let cleanPhone = formData.phone.replace(/\s+/g, '');
       const formattedPhone = cleanPhone.startsWith('+') ? cleanPhone : '+91' + cleanPhone;
-      const payload = { ...formData, phone: formattedPhone, idToken };
+      const payload = { ...formData, phone: formattedPhone, otp };
 
       const response = await fetch('http://3.110.191.121:5000/api/auth/register', {
         method: 'POST',
@@ -99,11 +85,7 @@ const RegisterPage = () => {
         setError(data.error || 'Failed to register.');
       }
     } catch (err) {
-      if (err.message && err.message.includes('auth/')) {
-        setError('Invalid OTP. Please try again.');
-      } else {
-        setError('Could not connect to backend server.');
-      }
+      setError('Could not connect to backend server.');
     } finally {
       setLoading(false);
     }
@@ -121,8 +103,6 @@ const RegisterPage = () => {
         </div>
         
         {error && <div style={{ background: 'rgba(255, 95, 86, 0.2)', border: '1px solid #ff5f56', padding: '10px', borderRadius: '8px', color: '#ff5f56', marginBottom: '1rem', fontSize: '0.9rem' }}>{error}</div>}
-
-        <div id="recaptcha-container"></div>
 
         {!otpSent ? (
           <form onSubmit={handleSendOtp} className="registration-form">

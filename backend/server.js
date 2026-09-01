@@ -33,6 +33,7 @@ const startServer = async () => {
   try {
     const SiteContent = require('./models/SiteContent');
     const Feedback = require('./models/Feedback');
+    const OTP = require('./models/OTP');
     await sequelize.sync();
     console.log('✅ Database models synchronized.');
     

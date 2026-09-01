@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import '../components/Registration.css'; // Reuse form styles
-import { auth } from '../firebase';
-import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -17,7 +15,6 @@ const LoginPage = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
-  const [confirmationResult, setConfirmationResult] = useState(null);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -51,36 +48,32 @@ const LoginPage = () => {
     }
   };
 
-  const setupRecaptcha = () => {
-    if (!window.recaptchaVerifier) {
-      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        'size': 'invisible',
-        'callback': (response) => {
-          // reCAPTCHA solved
-        }
-      });
-    }
-  };
-
   const handleSendOtp = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     try {
-      setupRecaptcha();
-      const appVerifier = window.recaptchaVerifier;
-      // Strip non-digits and enforce +91 format
       let cleanPhone = phoneNumber.replace(/\D/g, '');
       if (cleanPhone.length === 12 && cleanPhone.startsWith('91')) {
           cleanPhone = cleanPhone.substring(2);
       }
       const formattedPhone = '+91' + cleanPhone;
-      const result = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
-      setConfirmationResult(result);
-      setOtpSent(true);
+
+      const response = await fetch('http://3.110.191.121:5000/api/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: formattedPhone })
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        setOtpSent(true);
+      } else {
+        setError(data.error || 'Failed to send OTP');
+      }
     } catch (err) {
       console.error(err);
-      setError(`Failed to send OTP: ${err.message || 'Check console for details.'}`);
+      setError('Could not connect to server.');
     } finally {
       setLoading(false);
     }
@@ -91,13 +84,16 @@ const LoginPage = () => {
     setLoading(true);
     setError('');
     try {
-      const result = await confirmationResult.confirm(otp);
-      const idToken = await result.user.getIdToken();
-      
+      let cleanPhone = phoneNumber.replace(/\D/g, '');
+      if (cleanPhone.length === 12 && cleanPhone.startsWith('91')) {
+          cleanPhone = cleanPhone.substring(2);
+      }
+      const formattedPhone = '+91' + cleanPhone;
+
       const response = await fetch('http://3.110.191.121:5000/api/auth/phone-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idToken })
+        body: JSON.stringify({ phoneNumber: formattedPhone, otp })
       });
       const data = await response.json();
 
@@ -107,10 +103,10 @@ const LoginPage = () => {
         else if (data.user.role === 'seller') navigate('/seller');
         else if (data.user.role === 'admin') navigate('/admin');
       } else {
-        setError(data.error || 'Backend failed to login via phone.');
+        setError(data.error || 'Invalid OTP.');
       }
     } catch (err) {
-      setError('Invalid OTP. Please try again.');
+      setError('Could not connect to server.');
     } finally {
       setLoading(false);
     }
@@ -169,8 +165,6 @@ const LoginPage = () => {
         {/* Phone Login Form */}
         {loginMethod === 'phone' && (
           <div>
-            <div id="recaptcha-container"></div>
-            
             {!otpSent ? (
               <form onSubmit={handleSendOtp} className="registration-form">
                 <div className="form-group">
