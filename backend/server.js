@@ -24,6 +24,11 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/admin-agent', adminAgentRoutes);
 
+// Health Check Route for AWS
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'healthy', timestamp: new Date() });
+});
+
 // Sync Database and Start Server
 const startServer = async () => {
   await connectDB();
