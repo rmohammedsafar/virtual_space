@@ -49,15 +49,20 @@ const RegisterPage = () => {
     try {
       setupRecaptcha();
       const appVerifier = window.recaptchaVerifier;
-      let cleanPhone = formData.phone.replace(/\s+/g, '');
-      const formattedPhone = cleanPhone.startsWith('+') ? cleanPhone : '+91' + cleanPhone;
+      
+      // Strip non-digits and enforce +91 format
+      let cleanPhone = formData.phone.replace(/\D/g, '');
+      if (cleanPhone.length === 12 && cleanPhone.startsWith('91')) {
+          cleanPhone = cleanPhone.substring(2);
+      }
+      const formattedPhone = '+91' + cleanPhone;
       
       const result = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
       setConfirmationResult(result);
       setOtpSent(true);
     } catch (err) {
-      setError('Failed to send OTP. Check phone number format (e.g. +919876543210).');
       console.error(err);
+      setError(`Failed to send OTP: ${err.message || 'Check console for details.'}`);
     } finally {
       setLoading(false);
     }
@@ -70,12 +75,13 @@ const RegisterPage = () => {
 
     try {
       // 1. Verify OTP with Firebase
-      await confirmationResult.confirm(otp);
+      const result = await confirmationResult.confirm(otp);
+      const idToken = await result.user.getIdToken();
       
       // 2. Register user in backend
       let cleanPhone = formData.phone.replace(/\s+/g, '');
       const formattedPhone = cleanPhone.startsWith('+') ? cleanPhone : '+91' + cleanPhone;
-      const payload = { ...formData, phone: formattedPhone };
+      const payload = { ...formData, phone: formattedPhone, idToken };
 
       const response = await fetch('http://3.110.191.121:5000/api/auth/register', {
         method: 'POST',
@@ -134,7 +140,10 @@ const RegisterPage = () => {
             </div>
             <div className="form-group">
               <label className="form-label">Phone Number (Required)</label>
-              <input type="text" name="phone" value={formData.phone} onChange={handleChange} className="form-input" placeholder="e.g. +91 9876543210" required />
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <div className="form-input" style={{ flex: '0 0 60px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.05)', color: 'var(--color-text-muted)' }}>+91</div>
+                <input type="text" name="phone" value={formData.phone} onChange={handleChange} className="form-input" style={{ flex: 1 }} placeholder="9876543210" required />
+              </div>
             </div>
             <div className="form-group">
               <label className="form-label">I want to...</label>

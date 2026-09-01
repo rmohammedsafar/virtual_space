@@ -69,15 +69,18 @@ const LoginPage = () => {
     try {
       setupRecaptcha();
       const appVerifier = window.recaptchaVerifier;
-      // Strip spaces and ensure E.164 format
-      let cleanPhone = phoneNumber.replace(/\s+/g, '');
-      const formattedPhone = cleanPhone.startsWith('+') ? cleanPhone : '+91' + cleanPhone;
+      // Strip non-digits and enforce +91 format
+      let cleanPhone = phoneNumber.replace(/\D/g, '');
+      if (cleanPhone.length === 12 && cleanPhone.startsWith('91')) {
+          cleanPhone = cleanPhone.substring(2);
+      }
+      const formattedPhone = '+91' + cleanPhone;
       const result = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
       setConfirmationResult(result);
       setOtpSent(true);
     } catch (err) {
-      setError('Failed to send OTP. Check phone number format.');
       console.error(err);
+      setError(`Failed to send OTP: ${err.message || 'Check console for details.'}`);
     } finally {
       setLoading(false);
     }
@@ -88,14 +91,13 @@ const LoginPage = () => {
     setLoading(true);
     setError('');
     try {
-      await confirmationResult.confirm(otp);
+      const result = await confirmationResult.confirm(otp);
+      const idToken = await result.user.getIdToken();
       
-      let cleanPhone = phoneNumber.replace(/\s+/g, '');
-      const formattedPhone = cleanPhone.startsWith('+') ? cleanPhone : '+91' + cleanPhone;
       const response = await fetch('http://3.110.191.121:5000/api/auth/phone-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phoneNumber: formattedPhone })
+        body: JSON.stringify({ idToken })
       });
       const data = await response.json();
 
@@ -173,7 +175,10 @@ const LoginPage = () => {
               <form onSubmit={handleSendOtp} className="registration-form">
                 <div className="form-group">
                   <label className="form-label">Phone Number</label>
-                  <input type="text" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)} className="form-input" placeholder="9876543210" required />
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <div className="form-input" style={{ flex: '0 0 60px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.05)', color: 'var(--color-text-muted)' }}>+91</div>
+                    <input type="text" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)} className="form-input" style={{ flex: 1 }} placeholder="9876543210" required />
+                  </div>
                 </div>
                 <button type="submit" className="btn-primary" disabled={loading} style={{ width: '100%', marginTop: '1rem', opacity: loading ? 0.7 : 1 }}>
                   {loading ? 'Sending OTP...' : 'Send OTP'}

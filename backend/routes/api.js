@@ -6,6 +6,7 @@ const Rental = require('../models/Rental'); // Ensure Rental is imported
 const multer = require('multer');
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const { v4: uuidv4 } = require('uuid');
+const admin = require('../config/firebaseAdmin');
 
 // AWS S3 Configuration
 const s3 = new S3Client({
@@ -48,7 +49,19 @@ router.post('/auth/login', async (req, res) => {
 // Phone Login Route
 router.post('/auth/phone-login', async (req, res) => {
   try {
-    const { phoneNumber } = req.body;
+    const { idToken } = req.body;
+    
+    if (!idToken) {
+      return res.status(400).json({ success: false, error: 'ID token is required' });
+    }
+
+    // Verify the Firebase ID token
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const phoneNumber = decodedToken.phone_number;
+
+    if (!phoneNumber) {
+      return res.status(400).json({ success: false, error: 'Phone number not found in token' });
+    }
     
     let user = await User.findOne({ where: { phone: phoneNumber } });
     
@@ -62,6 +75,10 @@ router.post('/auth/phone-login', async (req, res) => {
       message: 'Logged in successfully via Phone' 
     });
   } catch (error) {
+    console.error('Phone login error:', error);
+    if (error.code && error.code.startsWith('auth/')) {
+      return res.status(401).json({ success: false, error: 'Invalid or expired token' });
+    }
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -69,7 +86,22 @@ router.post('/auth/phone-login', async (req, res) => {
 // Registration Route
 router.post('/auth/register', async (req, res) => {
   try {
-    const { email, password, role, companyName, phone } = req.body;
+    const { email, password, role, companyName, phone, idToken } = req.body;
+    
+    let verifiedPhone = phone;
+
+    // If ID token is provided, verify it (required for secure phone auth)
+    if (idToken) {
+      try {
+        const decodedToken = await admin.auth().verifyIdToken(idToken);
+        if (decodedToken.phone_number) {
+          verifiedPhone = decodedToken.phone_number;
+        }
+      } catch (authErr) {
+        console.error('Token verification failed:', authErr);
+        return res.status(401).json({ success: false, error: 'Invalid or expired ID token' });
+      }
+    }
     
     // Check if user already exists
     let existingUser = await User.findOne({ where: { email } });
@@ -77,8 +109,8 @@ router.post('/auth/register', async (req, res) => {
       return res.status(400).json({ success: false, error: 'User with this email already exists' });
     }
     
-    if (phone) {
-      let existingPhone = await User.findOne({ where: { phone } });
+    if (verifiedPhone) {
+      let existingPhone = await User.findOne({ where: { phone: verifiedPhone } });
       if (existingPhone) {
         return res.status(400).json({ success: false, error: 'User with this phone number already exists' });
       }
@@ -89,7 +121,7 @@ router.post('/auth/register', async (req, res) => {
       email,
       password, // In production, hash passwords
       role,
-      phone
+      phone: verifiedPhone
       // Note: If you want to store companyName, you'd need to add it to the User model
     });
 
