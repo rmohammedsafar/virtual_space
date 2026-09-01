@@ -22,6 +22,21 @@ const functions = {
     const limit = args?.limit || 5;
     const users = await User.findAll({ limit, order: [['createdAt', 'DESC']] });
     return users.map(u => ({ id: u.id, email: u.email, role: u.role, phone: u.phone || 'N/A', companyName: u.companyName || 'N/A' }));
+  },
+  getRecentRentals: async (args) => {
+    const limit = args?.limit || 5;
+    const rentals = await Rental.findAll({ 
+      limit, 
+      order: [['createdAt', 'DESC']],
+      include: [{ model: User }, { model: Space }]
+    });
+    return rentals.map(r => ({
+      id: r.id, 
+      planType: r.planType,
+      status: r.status,
+      user: r.User?.email,
+      space: r.Space?.name
+    }));
   }
 };
 
@@ -54,6 +69,19 @@ const toolDeclarations = [
             limit: {
               type: 'NUMBER',
               description: 'The maximum number of users to return. Default is 5.',
+            }
+          }
+        }
+      },
+      {
+        name: 'getRecentRentals',
+        description: 'Get a list of the most recent rental listings or active rentals.',
+        parameters: {
+          type: 'OBJECT',
+          properties: {
+            limit: {
+              type: 'NUMBER',
+              description: 'The maximum number of rentals to return. Default is 5.',
             }
           }
         }
@@ -94,7 +122,9 @@ router.post('/', async (req, res) => {
     
     // Handle function calls in a loop in case the model wants to call multiple functions
     let calls = result.response.functionCalls();
-    while (calls && calls.length > 0) {
+    let maxIterations = 5;
+    while (calls && calls.length > 0 && maxIterations > 0) {
+      maxIterations--;
       const call = calls[0]; // Process first call
       const functionName = call.name;
       const args = call.args;
@@ -112,6 +142,10 @@ router.post('/', async (req, res) => {
         result = await chat.sendMessage(`System: The function ${functionName} is unknown or not available.`);
       }
       calls = result.response.functionCalls();
+    }
+    
+    if (maxIterations === 0 && calls && calls.length > 0) {
+       console.warn("Max function call iterations reached to prevent infinite loops.");
     }
 
     const text = result.response.text();
