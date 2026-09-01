@@ -27,3 +27,5 @@ dist-ssr
 backend/.env
 .env
 scratch_create_db.js
+firebase-service-account.json
+backend/firebase-service-account.json
