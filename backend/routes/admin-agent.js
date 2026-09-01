@@ -102,29 +102,14 @@ router.post('/', async (req, res) => {
       if (functions[functionName]) {
         try {
           const apiResponse = await functions[functionName](args);
-          result = await chat.sendMessage([{
-            functionResponse: {
-              name: functionName,
-              response: apiResponse
-            }
-          }]);
+          result = await chat.sendMessage(`System: The function ${functionName} executed successfully. Here is the returned data:\n${JSON.stringify(apiResponse)}`);
         } catch (funcErr) {
            console.error("Function execution error:", funcErr);
-           result = await chat.sendMessage([{
-            functionResponse: {
-              name: functionName,
-              response: { error: "Failed to execute database query" }
-            }
-          }]);
+           result = await chat.sendMessage(`System: The function ${functionName} failed to execute. Error: Failed to execute database query`);
         }
       } else {
         // Unknown function
-        result = await chat.sendMessage([{
-          functionResponse: {
-            name: functionName,
-            response: { error: "Unknown function" }
-          }
-        }]);
+        result = await chat.sendMessage(`System: The function ${functionName} is unknown or not available.`);
       }
       calls = result.response.functionCalls();
     }
