@@ -130,7 +130,7 @@ const AdminAIAgent = () => {
                 borderBottomRightRadius: msg.role === 'user' ? '4px' : '12px',
                 borderBottomLeftRadius: msg.role === 'user' ? '12px' : '4px'
               }}>
-                {msg.text}
+                {msg.role === 'model' ? msg.text.replace(/[*#]/g, '') : msg.text}
               </div>
             ))}
             {isLoading && (

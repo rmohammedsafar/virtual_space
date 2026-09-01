@@ -106,7 +106,7 @@ router.post('/', async (req, res) => {
     const model = genAI.getGenerativeModel({ 
       model: "gemini-3.6-flash",
       tools: toolDeclarations,
-      systemInstruction: "You are an Admin Database Agent. You help the system administrator query the database. Use the provided tools. CRITICAL: Never use Markdown tables to format data. Always present data in clean, readable bulleted lists. The chat UI does not support markdown tables."
+      systemInstruction: "You are an Admin Database Agent. You help the system administrator query the database. Use the provided tools. CRITICAL RULES: 1. NEVER use Markdown formatting (no asterisks, no bolding, no hashes). 2. ALWAYS format each record exactly on a single line, like this: • Name/Email (Role) - Details. 3. Do not add extra line breaks between related details."
     });
     let chatHistory = [];
     if (history && Array.isArray(history)) {
