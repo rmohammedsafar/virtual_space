@@ -72,15 +72,15 @@ const AdminAIAgent = () => {
 
       {/* Chat Window */}
       {isOpen && (
-        <div style={{
+        <div className="glass-panel" style={{
           position: 'fixed',
           bottom: '90px',
           right: '20px',
           width: '350px',
           height: '500px',
-          backgroundColor: 'var(--color-bg-card)',
+          backgroundColor: '#0f172a', /* Solid dark blue to prevent bleed-through */
           borderRadius: '12px',
-          boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.8)',
           display: 'flex',
           flexDirection: 'column',
           zIndex: 1000,

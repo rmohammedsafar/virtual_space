@@ -76,7 +76,7 @@ router.post('/', async (req, res) => {
 
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-3.6-flash",
+      model: "gemini-1.5-flash",
       tools: toolDeclarations,
       systemInstruction: "You are an Admin Database Agent. You help the system administrator query the application's database. Use the provided tools to answer the admin's questions about users, spaces, and rentals. Present the data clearly."
     });
@@ -135,7 +135,7 @@ router.post('/', async (req, res) => {
 
   } catch (error) {
     console.error('Admin Agent Error:', error);
-    res.status(500).json({ success: false, error: 'Failed to process agent request' });
+    res.status(500).json({ success: false, error: 'Failed to process agent request: ' + error.message });
   }
 });
 
