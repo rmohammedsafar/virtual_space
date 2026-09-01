@@ -132,14 +132,14 @@ router.post('/', async (req, res) => {
       if (functions[functionName]) {
         try {
           const apiResponse = await functions[functionName](args);
-          result = await chat.sendMessage(`System: The function ${functionName} executed successfully. Here is the returned data:\n${JSON.stringify(apiResponse)}`);
+          result = await chat.sendMessage(`System: The function ${functionName} executed successfully. Here is the returned data:\n${JSON.stringify(apiResponse)}\n\nCRITICAL INSTRUCTION: You now have the data. Do NOT call the function again. Stop thinking and immediately output your final response to the user.`);
         } catch (funcErr) {
            console.error("Function execution error:", funcErr);
-           result = await chat.sendMessage(`System: The function ${functionName} failed to execute. Error: Failed to execute database query`);
+           result = await chat.sendMessage(`System: The function ${functionName} failed to execute. Error: Failed to execute database query\n\nCRITICAL INSTRUCTION: Do NOT call this function again. Tell the user there was an error.`);
         }
       } else {
         // Unknown function
-        result = await chat.sendMessage(`System: The function ${functionName} is unknown or not available.`);
+        result = await chat.sendMessage(`System: The function ${functionName} is unknown or not available.\n\nCRITICAL INSTRUCTION: Do NOT call this function again. Tell the user it is unavailable.`);
       }
       calls = result.response.functionCalls();
     }
