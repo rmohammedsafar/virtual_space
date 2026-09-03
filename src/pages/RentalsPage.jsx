@@ -18,7 +18,7 @@ const RentalsPage = () => {
     }
     setUser(JSON.parse(savedUser));
 
-    fetch('http://3.110.191.121:5000/api/spaces')
+    fetch('/api/spaces')
       .then(res => res.json())
       .then(data => {
         if (data.success) {
@@ -68,7 +68,7 @@ const RentalsPage = () => {
       let endpoint = mode === 'yearly' ? '/create-order' : '/create-subscription';
       let payload = { spaceId: space.id, planType: mode };
 
-      const orderRes = await fetch(`http://3.110.191.121:5000/api/payments${endpoint}`, {
+      const orderRes = await fetch(`/api/payments${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -101,7 +101,7 @@ const RentalsPage = () => {
         },
         handler: async function (response) {
           try {
-            const verifyRes = await fetch('http://3.110.191.121:5000/api/payments/verify', {
+            const verifyRes = await fetch('/api/payments/verify', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -136,7 +136,7 @@ const RentalsPage = () => {
           ondismiss: async function() {
             toast.error('Payment cancelled by user');
             try {
-              await fetch('http://3.110.191.121:5000/api/payments/failure', {
+              await fetch('/api/payments/failure', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -156,7 +156,7 @@ const RentalsPage = () => {
       rzp.on('payment.failed', async function (response) {
         toast.error(`Payment Failed: ${response.error.description}`);
         try {
-          await fetch('http://3.110.191.121:5000/api/payments/failure', {
+          await fetch('/api/payments/failure', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

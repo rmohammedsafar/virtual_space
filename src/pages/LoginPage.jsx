@@ -25,7 +25,7 @@ const LoginPage = () => {
     setError('');
 
     try {
-      const response = await fetch('http://3.110.191.121:5000/api/auth/login', {
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -59,7 +59,7 @@ const LoginPage = () => {
       }
       const formattedPhone = '+91' + cleanPhone;
 
-      const response = await fetch('http://3.110.191.121:5000/api/auth/send-otp', {
+      const response = await fetch('/api/auth/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: formattedPhone })
@@ -90,7 +90,7 @@ const LoginPage = () => {
       }
       const formattedPhone = '+91' + cleanPhone;
 
-      const response = await fetch('http://3.110.191.121:5000/api/auth/phone-login', {
+      const response = await fetch('/api/auth/phone-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phoneNumber: formattedPhone, otp })

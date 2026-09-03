@@ -31,7 +31,7 @@ const UserDashboard = () => {
     setUser(parsedUser);
 
     // Fetch stats for logged-in user
-    fetch(`http://3.110.191.121:5000/api/stats/user/${parsedUser.id}`)
+    fetch(`/api/stats/user/${parsedUser.id}`)
       .then(res => res.json())
       .then(data => {
         if (data.success) {
@@ -127,7 +127,7 @@ const UserDashboard = () => {
             const subject = form.subject.value;
             const message = form.message.value;
             try {
-              const res = await fetch('http://3.110.191.121:5000/api/feedback', {
+              const res = await fetch('/api/feedback', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

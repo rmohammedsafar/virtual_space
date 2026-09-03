@@ -19,7 +19,7 @@ const AdminAIAgent = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://3.110.191.121:5000/api/admin-agent', {
+      const response = await fetch('/api/admin-agent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

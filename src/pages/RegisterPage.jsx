@@ -39,7 +39,7 @@ const RegisterPage = () => {
       }
       const formattedPhone = '+91' + cleanPhone;
       
-      const response = await fetch('http://3.110.191.121:5000/api/auth/send-otp', {
+      const response = await fetch('/api/auth/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: formattedPhone })
@@ -69,7 +69,7 @@ const RegisterPage = () => {
       const formattedPhone = cleanPhone.startsWith('+') ? cleanPhone : '+91' + cleanPhone;
       const payload = { ...formData, phone: formattedPhone, otp };
 
-      const response = await fetch('http://3.110.191.121:5000/api/auth/register', {
+      const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

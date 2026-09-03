@@ -31,7 +31,7 @@ const SellerDashboard = () => {
     
     setUser(parsedUser);
 
-    fetch(`http://3.110.191.121:5000/api/stats/seller/${parsedUser.id}`)
+    fetch(`/api/stats/seller/${parsedUser.id}`)
       .then(res => res.json())
       .then(data => {
         if (data.success) {
@@ -65,7 +65,7 @@ const SellerDashboard = () => {
         formData.append('images', file);
       });
 
-      const res = await fetch('http://3.110.191.121:5000/api/spaces', {
+      const res = await fetch('/api/spaces', {
         method: 'POST',
         body: formData
       });

@@ -45,7 +45,7 @@ const AdminDashboard = () => {
     setUser(parsedUser);
 
     // Fetch live stats from SQLite backend
-    fetch('http://3.110.191.121:5000/api/stats/admin')
+    fetch('/api/stats/admin')
       .then(res => res.json())
       .then(data => {
         if (data.success) {
@@ -66,7 +66,7 @@ const AdminDashboard = () => {
     if (actionName === 'Manage Users') {
       setModalLoading(true);
       try {
-        const res = await fetch('http://3.110.191.121:5000/api/admin/users');
+        const res = await fetch('/api/admin/users');
         const data = await res.json();
         if (data.success) {
           setUserList(data.users);
@@ -79,7 +79,7 @@ const AdminDashboard = () => {
     } else if (actionName === 'Manage Spaces') {
       setModalLoading(true);
       try {
-        const res = await fetch('http://3.110.191.121:5000/api/spaces');
+        const res = await fetch('/api/spaces');
         const data = await res.json();
         if (data.success) {
           setSpaceList(data.spaces);
@@ -92,7 +92,7 @@ const AdminDashboard = () => {
     } else if (actionName === 'Manage Site Content') {
       setModalLoading(true);
       try {
-        const res = await fetch('http://3.110.191.121:5000/api/content');
+        const res = await fetch('/api/content');
         const data = await res.json();
         if (data.success) {
           setSiteContent(data.data);
@@ -105,7 +105,7 @@ const AdminDashboard = () => {
     } else if (actionName === 'User Feedback') {
       setModalLoading(true);
       try {
-        const res = await fetch('http://3.110.191.121:5000/api/feedback');
+        const res = await fetch('/api/feedback');
         const data = await res.json();
         if (data.success) {
           setFeedbackList(data.feedbacks);
@@ -120,7 +120,7 @@ const AdminDashboard = () => {
 
   const handleUpdateContent = async (key) => {
     try {
-      const res = await fetch(`http://3.110.191.121:5000/api/admin/content/${key}`, {
+      const res = await fetch(`/api/admin/content/${key}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ value: siteContent[key] })
@@ -140,7 +140,7 @@ const AdminDashboard = () => {
   const handleUpdateSpace = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch(`http://3.110.191.121:5000/api/admin/spaces/${editSpaceData.id}`, {
+      const res = await fetch(`/api/admin/spaces/${editSpaceData.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editSpaceData)
@@ -162,7 +162,7 @@ const AdminDashboard = () => {
   const handleDeleteSpace = async (id) => {
     if (!window.confirm('Are you sure you want to delete this space?')) return;
     try {
-      const res = await fetch(`http://3.110.191.121:5000/api/admin/spaces/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/admin/spaces/${id}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.success) {
         setSpaceList(spaceList.filter(s => s.id !== id));
@@ -179,7 +179,7 @@ const AdminDashboard = () => {
   const handleUpdateUser = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch(`http://3.110.191.121:5000/api/admin/users/${editUserData.id}`, {
+      const res = await fetch(`/api/admin/users/${editUserData.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editUserData)
@@ -202,7 +202,7 @@ const AdminDashboard = () => {
     if (!window.confirm(`Are you sure you want to suspend ${email}?`)) return;
     
     try {
-      const res = await fetch(`http://3.110.191.121:5000/api/admin/users/${userId}`, {
+      const res = await fetch(`/api/admin/users/${userId}`, {
         method: 'DELETE'
       });
       const data = await res.json();
@@ -488,7 +488,7 @@ const AdminDashboard = () => {
                               style={{ padding: '5px 10px', fontSize: '0.8rem' }}
                               onClick={async () => {
                                 try {
-                                  const res = await fetch(`http://3.110.191.121:5000/api/feedback/${feedback.id}/read`, { method: 'PUT' });
+                                  const res = await fetch(`/api/feedback/${feedback.id}/read`, { method: 'PUT' });
                                   const data = await res.json();
                                   if (data.success) {
                                     setFeedbackList(feedbackList.map(f => f.id === feedback.id ? { ...f, status: 'read' } : f));

@@ -8,7 +8,7 @@ export const ContentProvider = ({ children }) => {
 
   const fetchContent = async () => {
     try {
-      const res = await fetch('http://3.110.191.121:5000/api/content');
+      const res = await fetch('/api/content');
       const data = await res.json();
       if (data.success) {
         setContent(data.data);
