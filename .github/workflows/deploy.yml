@@ -14,7 +14,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Deploy to AWS EC2
+      - name: Deploy to Golden Instance
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -23,13 +23,22 @@ jobs:
           script_stop: true
           script: |
             cd ~/virtual_space
-            # Force pull latest code (overwrites accidental local changes on server)
+            # Force pull latest code
             git fetch origin
             git reset --hard origin/main
             
             # Update Backend
             cd backend
             npm install
+            
+            # Fetch secrets from AWS Secrets Manager and create .env file
+            echo "Fetching secrets from AWS Secrets Manager..."
+            aws secretsmanager get-secret-value \
+              --secret-id "${{ secrets.AWS_SECRET_NAME }}" \
+              --region "${{ secrets.AWS_REGION }}" \
+              --query SecretString \
+              --output text | jq -r 'to_entries | map("\(.key)=\(.value)") | .[]' > .env
+              
             pm2 restart backend || pm2 start server.js --name "backend"
             
             # Update Frontend
@@ -37,8 +46,53 @@ jobs:
             npm install
             npm run build
             
-            # Restart frontend PM2 process if it exists, otherwise start it
+            # Restart frontend PM2 process
             sudo pm2 restart frontend || sudo pm2 serve dist 80 --name "frontend" --spa
             
-            # Save PM2 state so it restarts on server reboot
+            # Save PM2 state
             pm2 save
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          
+      - name: Create AMI from Golden Instance
+        id: create-ami
+        run: |
+          TIMESTAMP=$(date +%s)
+          AMI_NAME="golden-ami-$TIMESTAMP"
+          
+          echo "Creating AMI $AMI_NAME from instance ${{ secrets.GOLDEN_INSTANCE_ID }}..."
+          
+          AMI_ID=$(aws ec2 create-image \
+            --instance-id "${{ secrets.GOLDEN_INSTANCE_ID }}" \
+            --name "$AMI_NAME" \
+            --no-reboot \
+            --query "ImageId" \
+            --output text)
+            
+          echo "Created AMI: $AMI_ID"
+          echo "ami_id=$AMI_ID" >> $GITHUB_OUTPUT
+          
+          echo "Waiting for AMI to be available (this may take a few minutes)..."
+          aws ec2 wait image-available --image-ids "$AMI_ID"
+          echo "AMI is ready!"
+
+      - name: Update Launch Template
+        run: |
+          echo "Updating Launch Template ${{ secrets.LAUNCH_TEMPLATE_ID }}..."
+          aws ec2 create-launch-template-version \
+            --launch-template-id "${{ secrets.LAUNCH_TEMPLATE_ID }}" \
+            --source-version '$Latest' \
+            --version-description "Auto-updated via CI/CD" \
+            --launch-template-data '{"ImageId":"${{ steps.create-ami.outputs.ami_id }}"}'
+
+      - name: Trigger ASG Instance Refresh
+        run: |
+          echo "Starting Instance Refresh for ASG ${{ secrets.ASG_NAME }}..."
+          aws autoscaling start-instance-refresh \
+            --auto-scaling-group-name "${{ secrets.ASG_NAME }}" \
+            --preferences '{"MinHealthyPercentage": 100, "InstanceWarmup": 120}'

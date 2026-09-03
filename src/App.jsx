@@ -10,6 +10,7 @@ import SellerDashboard from './pages/SellerDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminLogin from './pages/AdminLogin';
 import RentalsPage from './pages/RentalsPage';
+import Privacy from './pages/Privacy';
 import { Toaster } from 'react-hot-toast';
 
 import { ContentProvider } from './context/ContentContext';
@@ -38,6 +39,7 @@ function App() {
           <Route path="/seller" element={<SellerDashboard />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/privacy" element={<Privacy />} />
         </Routes>
       </Router>
     </ContentProvider>

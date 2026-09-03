@@ -3,6 +3,7 @@ const dns = require('dns');
 dns.setDefaultResultOrder('ipv4first');
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const { connectDB, sequelize } = require('./config/database');
 const apiRoutes = require('./routes/api');
 const paymentsRoutes = require('./routes/payments');
@@ -11,7 +12,7 @@ const feedbackRoutes = require('./routes/feedback');
 const adminAgentRoutes = require('./routes/admin-agent');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 80;
 
 // Middleware
 app.use(cors());
@@ -27,6 +28,19 @@ app.use('/api/admin-agent', adminAgentRoutes);
 // Health Check Route for AWS
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'healthy', timestamp: new Date() });
+});
+
+// Serve Frontend Static Files
+// This serves the 'dist' folder built by Vite React
+const frontendDistPath = path.join(__dirname, '../dist');
+app.use(express.static(frontendDistPath));
+
+// Catch-all route for React client-side routing
+// Any request that doesn't match an API route or static file will serve index.html
+// Catch-all route for React client-side routing
+// Any request that doesn't match an API route or static file will serve index.html
+app.use((req, res) => {
+  res.sendFile(path.join(frontendDistPath, 'index.html'));
 });
 
 // Sync Database and Start Server
