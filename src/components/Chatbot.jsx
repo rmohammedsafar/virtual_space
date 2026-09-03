@@ -152,6 +152,50 @@ const Chatbot = () => {
               </div>
             ))}
             
+            {/* FAQ Quick Replies - Show only if no user messages have been sent yet or always show at bottom */}
+            {messages.length === 1 && !isLoading && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px' }}>
+                <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: '5px' }}>Frequently Asked Questions:</p>
+                {[
+                  { q: 'How do I book a space?', a: 'You can book a space by browsing our catalog, selecting your preferred space, choosing a time slot, and clicking "Book Now".' },
+                  { q: 'What payment methods do you accept?', a: 'We accept all major credit cards, debit cards, and seamless local payment options during checkout.' },
+                  { q: 'Can I cancel my booking?', a: 'Yes, you can cancel your booking from your User Dashboard up to 24 hours before the scheduled time for a full refund.' }
+                ].map((faq, idx) => (
+                  <button 
+                    key={idx}
+                    onClick={() => {
+                      setMessages(prev => [
+                        ...prev, 
+                        { role: 'user', text: faq.q },
+                        { role: 'model', text: faq.a }
+                      ]);
+                    }}
+                    style={{
+                      background: 'transparent',
+                      border: '1px solid var(--color-primary)',
+                      color: 'var(--color-primary)',
+                      padding: '8px 12px',
+                      borderRadius: '15px',
+                      fontSize: '0.85rem',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseOver={e => {
+                      e.currentTarget.style.background = 'var(--color-primary)';
+                      e.currentTarget.style.color = 'white';
+                    }}
+                    onMouseOut={e => {
+                      e.currentTarget.style.background = 'transparent';
+                      e.currentTarget.style.color = 'var(--color-primary)';
+                    }}
+                  >
+                    {faq.q}
+                  </button>
+                ))}
+              </div>
+            )}
+
             {isLoading && (
               <div style={{
                 alignSelf: 'flex-start',
