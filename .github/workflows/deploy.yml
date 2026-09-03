@@ -35,7 +35,7 @@ jobs:
             echo "Fetching secrets from AWS Secrets Manager..."
             aws secretsmanager get-secret-value \
               --secret-id "${{ secrets.AWS_SECRET_NAME }}" \
-              --region "${{ secrets.AWS_REGION }}" \
+              --region "ap-south-1" \
               --query SecretString \
               --output text | jq -r 'to_entries | map("\(.key)=\(.value)") | .[]' > .env
               
@@ -57,7 +57,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-region: ap-south-1
           
       - name: Create AMI from Golden Instance
         id: create-ami
