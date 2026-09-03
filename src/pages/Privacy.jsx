@@ -1,5 +1,4 @@
 import React from 'react';
-import './Privacy.css'; // Optional: if you want to add custom styles later
 
 const Privacy = () => {
   return (
