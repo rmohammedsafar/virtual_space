@@ -53,10 +53,6 @@ if [ -n "$BACKUP_S3_BUCKET_NAME" ] && [ -n "$BACKUP_AWS_REGION" ]; then
     echo "Database backup upload to S3 successful."
   fi
   
-  if [ -n "$AWS_S3_BUCKET_NAME" ]; then
-    echo "Syncing primary S3 bucket ($AWS_S3_BUCKET_NAME) to backup bucket..."
-    aws s3 sync "s3://$AWS_S3_BUCKET_NAME" "s3://$BACKUP_S3_BUCKET_NAME/s3-backups/" --region "$BACKUP_AWS_REGION" --source-region ap-south-1
-  fi
 else
   echo "Warning: BACKUP_S3_BUCKET_NAME or BACKUP_AWS_REGION not found in .env. Skipping S3 upload and sync."
   echo "Please add these variables to your AWS Secrets Manager secret."
