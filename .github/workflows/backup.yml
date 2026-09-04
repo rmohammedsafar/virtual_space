@@ -20,27 +20,33 @@ jobs:
 
       - name: Backup Database from EC2
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          AWS_SECRET_NAME: ${{ secrets.AWS_SECRET_NAME }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          envs: AWS_SECRET_NAME
           script: |
             echo "Starting database backup process..."
             
-            # Ensure the backend .env file exists before trying to load it
-            if [ ! -f ~/virtual_space/backend/.env ]; then
-              echo "Error: ~/virtual_space/backend/.env not found."
+            # Fetch DB credentials directly from AWS Secrets Manager
+            echo "Fetching database credentials from AWS Secrets Manager..."
+            SECRET_JSON=$(aws secretsmanager get-secret-value \
+              --secret-id "$AWS_SECRET_NAME" \
+              --region "ap-south-1" \
+              --query SecretString \
+              --output text)
+              
+            if [ -z "$SECRET_JSON" ]; then
+              echo "Error: Failed to fetch secrets from AWS Secrets Manager."
               exit 1
             fi
             
-            # Load env variables from backend .env safely
-            while IFS='=' read -r key value; do
-              if [[ -n "$key" && "$key" != \#* ]]; then
-                # Strip leading/trailing whitespace and quotes
-                value=$(echo "$value" | xargs | sed -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")
-                export "$key"="$value"
-              fi
-            done < ~/virtual_space/backend/.env
+            DB_HOST=$(echo "$SECRET_JSON" | jq -r '.DB_HOST // "127.0.0.1"')
+            DB_USER=$(echo "$SECRET_JSON" | jq -r '.DB_USER // "root"')
+            DB_PASSWORD=$(echo "$SECRET_JSON" | jq -r '.DB_PASSWORD // ""')
+            DB_NAME=$(echo "$SECRET_JSON" | jq -r '.DB_NAME // "quickspace_db"')
             
             # Create a backup directory if it doesn't exist
             mkdir -p ~/backups
@@ -49,16 +55,7 @@ jobs:
             TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
             BACKUP_FILE="$HOME/backups/db_backup_$TIMESTAMP.sql"
             
-            # Fallback values if not present in .env
-            DB_HOST=${DB_HOST:-127.0.0.1}
-            # Force TCP connection to avoid socket errors when connecting locally
-            if [ "$DB_HOST" = "localhost" ]; then
-              DB_HOST="127.0.0.1"
-            fi
-            DB_USER=${DB_USER:-root}
-            DB_NAME=${DB_NAME:-quickspace_db}
-            
-            echo "Dumping database $DB_NAME from $DB_HOST..."
+            echo "Dumping database $DB_NAME from AWS DB Host: $DB_HOST..."
             # Note: We omit the space between -p and the password per mysqldump syntax
             mysqldump --protocol=tcp -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASSWORD" "$DB_NAME" > "$BACKUP_FILE"
             
