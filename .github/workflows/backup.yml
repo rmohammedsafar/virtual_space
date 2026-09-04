@@ -33,8 +33,14 @@ jobs:
               exit 1
             fi
             
-            # Load env variables from backend .env
-            export $(grep -v '^#' ~/virtual_space/backend/.env | xargs)
+            # Load env variables from backend .env safely
+            while IFS='=' read -r key value; do
+              if [[ -n "$key" && "$key" != \#* ]]; then
+                # Strip leading/trailing whitespace and quotes
+                value=$(echo "$value" | xargs | sed -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")
+                export "$key"="$value"
+              fi
+            done < ~/virtual_space/backend/.env
             
             # Create a backup directory if it doesn't exist
             mkdir -p ~/backups
