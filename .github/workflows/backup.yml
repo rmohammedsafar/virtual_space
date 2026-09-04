@@ -44,13 +44,17 @@ jobs:
             BACKUP_FILE="$HOME/backups/db_backup_$TIMESTAMP.sql"
             
             # Fallback values if not present in .env
-            DB_HOST=${DB_HOST:-localhost}
+            DB_HOST=${DB_HOST:-127.0.0.1}
+            # Force TCP connection to avoid socket errors when connecting locally
+            if [ "$DB_HOST" = "localhost" ]; then
+              DB_HOST="127.0.0.1"
+            fi
             DB_USER=${DB_USER:-root}
             DB_NAME=${DB_NAME:-quickspace_db}
             
             echo "Dumping database $DB_NAME from $DB_HOST..."
             # Note: We omit the space between -p and the password per mysqldump syntax
-            mysqldump -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASSWORD" "$DB_NAME" > "$BACKUP_FILE"
+            mysqldump --protocol=tcp -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASSWORD" "$DB_NAME" > "$BACKUP_FILE"
             
             if [ $? -ne 0 ]; then
               echo "Error: mysqldump failed."
