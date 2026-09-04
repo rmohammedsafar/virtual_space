@@ -51,6 +51,13 @@ jobs:
             
             # Save PM2 state
             pm2 save
+            
+            # Setup Backup Cron Job
+            echo "Setting up daily backup cron job..."
+            chmod +x ~/virtual_space/backend/scripts/backup.sh
+            mkdir -p ~/backups
+            # Add cron job if it doesn't exist (runs at 2 AM SGT, which is 18:00 UTC)
+            (crontab -l 2>/dev/null | grep -v -F "~/virtual_space/backend/scripts/backup.sh"; echo "0 18 * * * ~/virtual_space/backend/scripts/backup.sh >> ~/backups/cron.log 2>&1") | crontab -
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
