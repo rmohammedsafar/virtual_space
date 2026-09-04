@@ -1,19 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Feedback = require('../models/Feedback');
-const nodemailer = require('nodemailer');
-
-// Set up Nodemailer transport
-// Note: For Gmail, you need an App Password in production.
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port: process.env.SMTP_PORT || 587,
-  secure: false,
-  auth: {
-    user: process.env.SMTP_USER || 'test@example.com',
-    pass: process.env.SMTP_PASS || 'testpassword'
-  }
-});
+const emailService = require('../utils/emailService');
 
 // POST /api/feedback - Submit new feedback
 router.post('/', async (req, res) => {
@@ -34,27 +22,18 @@ router.post('/', async (req, res) => {
     });
 
     // Send email to admin
-    const mailOptions = {
-      from: `"${name}" <${email}>`, // Note: Some SMTP servers rewrite this to SMTP_USER. 
-      to: 't06546666@gmail.com', // As requested by user
-      subject: `New Feedback: ${subject}`,
-      text: `You have received a new feedback submission on Quick Space.\n\nFrom: ${name} (${email})\nSubject: ${subject}\n\nMessage:\n${message}`,
-      html: `
-        <h3>New Feedback from Quick Space</h3>
-        <p><strong>From:</strong> ${name} (${email})</p>
-        <p><strong>Subject:</strong> ${subject}</p>
-        <hr />
-        <p>${message.replace(/\n/g, '<br/>')}</p>
-      `
-    };
+    const subjectLine = `New Feedback: ${subject}`;
+    const htmlBody = `
+      <h3>New Feedback from Quick Space</h3>
+      <p><strong>From:</strong> ${name} (${email})</p>
+      <p><strong>Subject:</strong> ${subject}</p>
+      <hr />
+      <p>${message.replace(/\n/g, '<br/>')}</p>
+    `;
 
     try {
-      if (process.env.SMTP_USER) {
-        await transporter.sendMail(mailOptions);
-        console.log('✅ Feedback email sent to t06546666@gmail.com');
-      } else {
-        console.log('⚠️ Feedback saved, but email NOT sent because SMTP_USER is not configured in .env');
-      }
+      await emailService.sendEmail('t06546666@gmail.com', subjectLine, htmlBody);
+      console.log('✅ Feedback email sent to t06546666@gmail.com via Lambda');
     } catch (emailError) {
       console.error('❌ Failed to send feedback email:', emailError);
       // We still return success since it was saved to the DB
