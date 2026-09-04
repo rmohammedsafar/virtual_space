@@ -21,32 +21,22 @@ jobs:
       - name: Backup Database from EC2
         uses: appleboy/ssh-action@v1.0.3
         env:
-          AWS_SECRET_NAME: ${{ secrets.AWS_SECRET_NAME }}
+          RDS_HOST: ${{ secrets.RDS_HOST }}
+          RDS_USER: ${{ secrets.RDS_USER }}
+          RDS_PASSWORD: ${{ secrets.RDS_PASSWORD }}
+          RDS_DB_NAME: ${{ secrets.RDS_DB_NAME || 'quickspace_db' }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: AWS_SECRET_NAME
+          envs: RDS_HOST,RDS_USER,RDS_PASSWORD,RDS_DB_NAME
           script: |
             echo "Starting database backup process..."
             
-            # Fetch DB credentials directly from AWS Secrets Manager
-            echo "Fetching database credentials from AWS Secrets Manager..."
-            SECRET_JSON=$(aws secretsmanager get-secret-value \
-              --secret-id "$AWS_SECRET_NAME" \
-              --region "ap-south-1" \
-              --query SecretString \
-              --output text)
-              
-            if [ -z "$SECRET_JSON" ]; then
-              echo "Error: Failed to fetch secrets from AWS Secrets Manager."
+            if [ -z "$RDS_HOST" ]; then
+              echo "Error: RDS_HOST is empty. Please add RDS_HOST to your GitHub Secrets."
               exit 1
             fi
-            
-            DB_HOST=$(echo "$SECRET_JSON" | jq -r '.DB_HOST // "127.0.0.1"')
-            DB_USER=$(echo "$SECRET_JSON" | jq -r '.DB_USER // "root"')
-            DB_PASSWORD=$(echo "$SECRET_JSON" | jq -r '.DB_PASSWORD // ""')
-            DB_NAME=$(echo "$SECRET_JSON" | jq -r '.DB_NAME // "quickspace_db"')
             
             # Create a backup directory if it doesn't exist
             mkdir -p ~/backups
@@ -55,9 +45,9 @@ jobs:
             TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
             BACKUP_FILE="$HOME/backups/db_backup_$TIMESTAMP.sql"
             
-            echo "Dumping database $DB_NAME from AWS DB Host: $DB_HOST..."
+            echo "Dumping database $RDS_DB_NAME from AWS RDS Host: $RDS_HOST..."
             # Note: We omit the space between -p and the password per mysqldump syntax
-            mysqldump --protocol=tcp -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASSWORD" "$DB_NAME" > "$BACKUP_FILE"
+            mysqldump --protocol=tcp -h "$RDS_HOST" -u "$RDS_USER" -p"$RDS_PASSWORD" "$RDS_DB_NAME" > "$BACKUP_FILE"
             
             if [ $? -ne 0 ]; then
               echo "Error: mysqldump failed."
