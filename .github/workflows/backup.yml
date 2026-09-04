@@ -18,55 +18,59 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-south-1 # Primary region
 
-      - name: Backup Database from EC2
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Backup Database via SSH Tunnel
         env:
           RDS_HOST: ${{ secrets.RDS_HOST }}
           RDS_USER: ${{ secrets.RDS_USER }}
           RDS_PASSWORD: ${{ secrets.RDS_PASSWORD }}
           RDS_DB_NAME: ${{ secrets.RDS_DB_NAME || 'quickspace_db' }}
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          envs: RDS_HOST,RDS_USER,RDS_PASSWORD,RDS_DB_NAME
-          script: |
-            echo "Starting database backup process..."
-            
-            if [ -z "$RDS_HOST" ]; then
-              echo "Error: RDS_HOST is empty. Please add RDS_HOST to your GitHub Secrets."
-              exit 1
-            fi
-            
-            # Create a backup directory if it doesn't exist
-            mkdir -p ~/backups
-            
-            # Format timestamp for filename
-            TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-            BACKUP_FILE="$HOME/backups/db_backup_$TIMESTAMP.sql"
-            
-            echo "Dumping database $RDS_DB_NAME from AWS RDS Host: $RDS_HOST..."
-            # Note: We omit the space between -p and the password per mysqldump syntax
-            mysqldump --protocol=tcp -h "$RDS_HOST" -u "$RDS_USER" -p"$RDS_PASSWORD" "$RDS_DB_NAME" > "$BACKUP_FILE"
-            
-            if [ $? -ne 0 ]; then
-              echo "Error: mysqldump failed."
-              exit 1
-            fi
-            
-            echo "Uploading backup to S3 bucket ${{ secrets.BACKUP_S3_BUCKET_NAME }} in region ${{ secrets.BACKUP_AWS_REGION }}..."
-            aws s3 cp "$BACKUP_FILE" "s3://${{ secrets.BACKUP_S3_BUCKET_NAME }}/db-backups/db_backup_$TIMESTAMP.sql" --region "${{ secrets.BACKUP_AWS_REGION }}"
-            
-            if [ $? -ne 0 ]; then
-              echo "Error: Failed to upload database backup to S3."
-              exit 1
-            fi
-            
-            # Clean up old local backups (keep last 7 days)
-            echo "Cleaning up local backups older than 7 days..."
-            find ~/backups -type f -name "*.sql" -mtime +7 -delete
-            
-            echo "Database backup completed successfully."
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
+          BACKUP_S3_BUCKET: ${{ secrets.BACKUP_S3_BUCKET_NAME }}
+          BACKUP_REGION: ${{ secrets.BACKUP_AWS_REGION }}
+        run: |
+          if [ -z "$RDS_HOST" ]; then
+            echo "Error: RDS_HOST is empty. Please add RDS_HOST to your GitHub Secrets."
+            exit 1
+          fi
+          
+          echo "Setting up SSH key..."
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H "$EC2_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          
+          echo "Establishing SSH tunnel to RDS instance through EC2..."
+          ssh -i ~/.ssh/id_rsa -f -N -L 3307:"$RDS_HOST":3306 "$EC2_USERNAME"@"$EC2_HOST"
+          
+          echo "Installing mysql-client on GitHub runner..."
+          sudo apt-get update && sudo apt-get install -y mysql-client
+          
+          TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+          BACKUP_FILE="db_backup_$TIMESTAMP.sql"
+          
+          echo "Dumping database $RDS_DB_NAME..."
+          # Connect to the local port 3307 which is tunneled to the RDS instance
+          mysqldump --protocol=tcp -h 127.0.0.1 -P 3307 -u "$RDS_USER" -p"$RDS_PASSWORD" "$RDS_DB_NAME" > "$BACKUP_FILE"
+          
+          if [ $? -ne 0 ]; then
+            echo "Error: mysqldump failed."
+            exit 1
+          fi
+          
+          echo "Uploading backup to S3 bucket $BACKUP_S3_BUCKET in region $BACKUP_REGION..."
+          # This runs on the GitHub Runner where the AWS CLI is fully available and authenticated
+          aws s3 cp "$BACKUP_FILE" "s3://$BACKUP_S3_BUCKET/db-backups/db_backup_$TIMESTAMP.sql" --region "$BACKUP_REGION"
+          
+          if [ $? -ne 0 ]; then
+            echo "Error: Failed to upload database backup to S3."
+            exit 1
+          fi
+          
+          echo "Cleaning up local dump file..."
+          rm "$BACKUP_FILE"
+          
+          echo "Database backup completed successfully."
 
       - name: Sync Primary S3 Bucket to Backup Bucket
         run: |
